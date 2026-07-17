@@ -16,7 +16,7 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
 body{font-family:'Work Sans',ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--plaster);overflow-x:hidden;font-size:16px;line-height:1.6;}
-.lattice-bg{background-image:linear-gradient(var(--line) 1px, transparent 1px),linear-gradient(90deg, var(--line) 1px, transparent 1px);background-size:var(--lattice) var(--lattice);background-position:-1px -1px;}
+.page-header-bg{background-image:url('bg-dates.svg');background-size:cover;background-position:center;}
 h1,h2,h3,h4{font-family:'Unbounded',ui-sans-serif,sans-serif;font-weight:800;letter-spacing:-0.01em;text-wrap:balance;}
 .mono{font-family:'IBM Plex Mono',ui-monospace,monospace;}
 a{color:inherit;}
@@ -44,14 +44,14 @@ section{padding:4.5rem 0;}
 .sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:1.5rem;margin-bottom:2.6rem;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:1.5rem;}
 .sec-eyebrow{font-size:.74rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--majorelle);margin-bottom:.5rem;}
 .sec-title{font-size:clamp(1.4rem,2.2vw,1.9rem);}
-.sec-note{max-width:380px;font-size:.88rem;color:var(--muted);}
+.dates-intro{font-size:.96rem;color:var(--muted);line-height:1.75;text-align:justify;max-width:780px;margin-bottom:2.6rem;}
 
 /* Timeline */
 .timeline{border:1px solid var(--line);background:var(--white);}
 .tl-row{display:grid;grid-template-columns:56px 1fr 200px;align-items:center;gap:1.5rem;padding:1.5rem 1.8rem;border-bottom:1px solid var(--line);position:relative;}
 .tl-row:last-child{border-bottom:none;}
 .tl-row.done{background:var(--teal-soft);}
-.tl-idx{font-family:'IBM Plex Mono';font-size:.72rem;color:var(--muted);}
+.tl-idx{width:32px;height:32px;display:block;object-fit:contain;}
 .tl-body .label{font-family:'Unbounded';font-size:1rem;font-weight:700;margin-bottom:.3rem;}
 .tl-body .desc{font-size:.85rem;color:var(--muted);}
 .tl-value{text-align:right;}
@@ -107,7 +107,7 @@ footer{background:var(--ink);color:#c9c6bc;padding:4rem 2rem 0;}
   </div>
 </nav>
 
-<div class="page-header lattice-bg">
+<div class="page-header page-header-bg">
   <div class="page-header-inner">
     <div class="breadcrumb"><a href="index.html">Home</a> / Important Dates</div>
     <h1>Important Dates</h1>
@@ -122,37 +122,38 @@ footer{background:var(--ink);color:#c9c6bc;padding:4rem 2rem 0;}
         <div class="sec-eyebrow">Timeline</div>
         <h2 class="sec-title">Key Deadlines</h2>
       </div>
-      <p class="sec-note">Mark these dates — camera-ready and registration deadlines fall in the same week, so plan submissions early.</p>
     </div>
+
+    <p class="dates-intro">Every submission to AINTEC 2027 is expected to be the authors' own original work, not previously made public anywhere else. A manuscript under review for this conference cannot be under review anywhere else at the same time, whether at another conference, in a journal, or in a separate set of proceedings — nor can it be a paper that has already appeared in print elsewhere. These expectations keep the review process fair for every author and give the conference proceedings their value once published. The schedule below lays out every date that matters between now and the closing session in Marrakech.</p>
 
     <div class="timeline">
       <div class="tl-row milestone">
-        <span class="tl-idx">01</span>
+        <img class="tl-idx" src="icon1.svg" alt="" width="32" height="32">
         <div class="tl-body"><div class="label">Paper Submission Deadline</div><div class="desc">Final date to submit your full paper for review.</div></div>
         <div class="tl-value"><div class="date">Feb 15, 2027</div></div>
       </div>
       <div class="tl-row">
-        <span class="tl-idx">02</span>
+        <img class="tl-idx" src="icon2.svg" alt="" width="32" height="32">
         <div class="tl-body"><div class="label">Notification of Acceptance</div><div class="desc">Authors are informed of the review outcome.</div></div>
         <div class="tl-value"><div class="date">Apr 15, 2027</div></div>
       </div>
       <div class="tl-row">
-        <span class="tl-idx">03</span>
+        <img class="tl-idx" src="icon3.svg" alt="" width="32" height="32">
         <div class="tl-body"><div class="label">Early Bird Payment Deadline</div><div class="desc">Last day to register at the early bird rate.</div></div>
         <div class="tl-value"><div class="date">May 1, 2027</div></div>
       </div>
       <div class="tl-row milestone">
-        <span class="tl-idx">04</span>
+        <img class="tl-idx" src="icon4.svg" alt="" width="32" height="32">
         <div class="tl-body"><div class="label">Camera-Ready Paper Deadline</div><div class="desc">Final, corrected version of accepted papers is due.</div></div>
         <div class="tl-value"><div class="date">May 10, 2027</div></div>
       </div>
       <div class="tl-row">
-        <span class="tl-idx">05</span>
+        <img class="tl-idx" src="icon5.svg" alt="" width="32" height="32">
         <div class="tl-body"><div class="label">Regular Registration Deadline</div><div class="desc">Last day to register at the regular rate.</div></div>
         <div class="tl-value"><div class="date">May 10, 2027</div></div>
       </div>
       <div class="tl-row done">
-        <span class="tl-idx">06</span>
+        <img class="tl-idx" src="icon6.svg" alt="" width="32" height="32">
         <div class="tl-body"><div class="label">Conference Days</div><div class="desc">AINTEC 2027 takes place at ISGA Campus Marrakech.</div></div>
         <div class="tl-value"><div class="date">Jun 1–3, 2027</div></div>
       </div>
