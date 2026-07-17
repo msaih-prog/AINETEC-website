@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Submission — AINTEC 2027</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800;900&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --plaster:#f3f1ec; --ink:#15171c; --muted:#5b584f; --line:#cdc7ba;
+  --majorelle:#2b3fe0; --majorelle-soft:#dde1fb; --teal:#1c7a5c; --teal-soft:#dcece4; --white:#ffffff;
+  --lattice: 64px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Work Sans',ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--plaster);overflow-x:hidden;font-size:16px;line-height:1.6;}
+.lattice-bg{background-image:linear-gradient(var(--line) 1px, transparent 1px),linear-gradient(90deg, var(--line) 1px, transparent 1px);background-size:var(--lattice) var(--lattice);background-position:-1px -1px;}
+h1,h2,h3,h4{font-family:'Unbounded',ui-sans-serif,sans-serif;font-weight:800;letter-spacing:-0.01em;text-wrap:balance;}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace;}
+a{color:inherit;}
+.topbar{background:var(--ink);color:#e7e4dc;padding:.5rem 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;font-size:.78rem;}
+.topbar span.mono{color:#9b98e0;}
+nav{background:var(--plaster);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1000;}
+.nav-inner{max-width:1240px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:76px;gap:1.5rem;}
+.nav-logo{display:flex;align-items:center;gap:.7rem;text-decoration:none;}
+.logo-mark{width:38px;height:38px;border:2px solid var(--ink);border-radius:2px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:linear-gradient(45deg, transparent 48%, var(--majorelle) 48%, var(--majorelle) 52%, transparent 52%);}
+.nav-logo .wordmark{font-family:'Unbounded';font-weight:800;font-size:1.05rem;letter-spacing:-0.01em;}
+.nav-logo .wordmark b{color:var(--majorelle);}
+.nav-menu{display:flex;list-style:none;gap:2rem;align-items:center;}
+.nav-menu a{font-size:.8rem;font-weight:600;text-decoration:none;color:var(--ink);text-transform:uppercase;letter-spacing:.04em;padding:.4rem 0;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav-menu a:hover,.nav-menu a.active{color:var(--majorelle);border-color:var(--majorelle);}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;}
+.hamburger span{width:24px;height:2px;background:var(--ink);}
+.page-header{padding:3.6rem 2rem 3.2rem;border-bottom:1px solid var(--line);}
+.page-header-inner{max-width:1240px;margin:0 auto;}
+.breadcrumb{font-size:.78rem;color:var(--muted);margin-bottom:1rem;}
+.breadcrumb a{color:var(--majorelle);text-decoration:none;}
+.page-header h1{font-size:clamp(1.8rem,3.4vw,2.7rem);}
+.page-header p{color:var(--muted);margin-top:.7rem;font-size:.95rem;max-width:560px;}
+.container{max-width:1240px;margin:0 auto;padding:0 2rem;}
+section{padding:4.5rem 0;}
+.sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:1.5rem;margin-bottom:2.6rem;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:1.5rem;}
+.sec-eyebrow{font-size:.74rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--majorelle);margin-bottom:.5rem;}
+.sec-title{font-size:clamp(1.4rem,2.2vw,1.9rem);}
+.sec-note{max-width:380px;font-size:.88rem;color:var(--muted);}
+
+.cta-band{background:var(--majorelle);padding:2.6rem 2rem;text-align:center;}
+.cta-band h3{color:#fff;font-size:1.3rem;margin-bottom:.6rem;}
+.cta-band p{color:var(--majorelle-soft);font-size:.9rem;margin-bottom:1.4rem;}
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.85rem 1.7rem;font-size:.85rem;font-weight:700;text-decoration:none;border-radius:2px;letter-spacing:.02em;}
+.btn-on-accent{background:#fff;color:var(--majorelle);}
+.btn-on-accent:hover{background:var(--ink);color:#fff;}
+
+.steps{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);}
+.step{padding:2rem 1.8rem;background:var(--white);border-right:1px solid var(--line);}
+.step:last-child{border-right:none;}
+.step .n{font-family:'IBM Plex Mono';font-size:.72rem;color:var(--majorelle);font-weight:700;margin-bottom:1rem;}
+.step h4{font-size:1rem;margin-bottom:.6rem;}
+.step p{font-size:.86rem;color:var(--muted);}
+
+.guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);}
+.guide-card{background:var(--white);padding:2rem;}
+.guide-card h4{font-size:.95rem;margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--line);}
+.guide-list{list-style:none;display:flex;flex-direction:column;gap:.7rem;}
+.guide-list li{font-size:.87rem;color:var(--muted);padding-left:1.1rem;position:relative;line-height:1.55;}
+.guide-list li::before{content:'→';position:absolute;left:0;color:var(--majorelle);font-weight:700;}
+
+.tpl-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;}
+.tpl-card{border:1px solid var(--line);background:var(--white);padding:1.6rem;display:flex;align-items:center;gap:1.3rem;}
+.tpl-icon{width:48px;height:48px;background:var(--majorelle-soft);color:var(--majorelle);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono';font-weight:700;font-size:.72rem;flex-shrink:0;}
+.tpl-info h4{font-size:.92rem;margin-bottom:.3rem;}
+.tpl-info p{font-size:.8rem;color:var(--muted);margin-bottom:.5rem;}
+.tpl-info a{font-size:.78rem;font-weight:700;color:var(--majorelle);text-decoration:none;}
+
+.notice{border-left:3px solid var(--teal);background:var(--teal-soft);padding:1.2rem 1.6rem;font-size:.86rem;color:#134532;margin-bottom:2.4rem;}
+
+footer{background:var(--ink);color:#c9c6bc;padding:4rem 2rem 0;}
+.footer-grid{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:2.5rem;padding-bottom:3rem;border-bottom:1px solid #2b2d33;}
+.footer-brand .wordmark{font-family:'Unbounded';font-weight:800;color:#fff;font-size:1.1rem;margin-bottom:.9rem;}
+.footer-brand .wordmark b{color:#7c8cff;}
+.footer-brand p{font-size:.82rem;color:#9b98e0;max-width:280px;line-height:1.7;}
+.footer-col h4{font-size:.72rem;font-weight:700;color:#fff;margin-bottom:1.1rem;text-transform:uppercase;letter-spacing:.08em;}
+.footer-links{list-style:none;display:flex;flex-direction:column;gap:.55rem;}
+.footer-links a{font-size:.84rem;text-decoration:none;color:#c9c6bc;transition:color .15s;}
+.footer-links a:hover{color:#7c8cff;}
+.footer-bottom{max-width:1240px;margin:0 auto;padding:1.4rem 0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem;font-size:.76rem;color:#726f66;}
+
+@media(max-width:900px){.steps,.guide-grid,.tpl-grid{grid-template-columns:1fr;}.step{border-right:none;border-bottom:1px solid var(--line);}.step:last-child{border-bottom:none;}}
+@media(max-width:720px){
+  .nav-menu{display:none;position:absolute;top:76px;left:0;right:0;background:var(--white);border-bottom:1px solid var(--line);flex-direction:column;gap:0;padding:.5rem 0;}
+  .nav-menu.open{display:flex;}
+  .nav-menu a{padding:.8rem 2rem;width:100%;border-bottom:1px solid var(--line);}
+  .hamburger{display:flex;}
+  .footer-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>Marrakech, Morocco <span class="mono">·</span> June 1–3, 2027</div>
+  <div class="mono">contact@aintec2027.org</div>
+</div>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <span class="logo-mark"></span>
+      <span class="wordmark">AINTEC <b>2027</b></span>
+    </a>
+    <ul class="nav-menu" id="navMenu">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="dates.html">Important Dates</a></li>
+      <li><a href="committees.html">Committees</a></li>
+      <li><a href="submission.html" class="active">Submission</a></li>
+      <li><a href="registration.html">Registration</a></li>
+      <li><a href="access-map.html">Access Map</a></li>
+    </ul>
+    <button class="hamburger" onclick="document.getElementById('navMenu').classList.toggle('open')">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<div class="page-header lattice-bg">
+  <div class="page-header-inner">
+    <div class="breadcrumb"><a href="index.html">Home</a> / Submission</div>
+    <h1>Paper Submission</h1>
+    <p>AINTEC 2027 — ISGA Campus Marrakech, Morocco.</p>
+  </div>
+</div>
+
+<div class="cta-band">
+  <h3>Ready to submit your paper?</h3>
+  <p>Submission platform link to be announced — check back soon or watch your inbox.</p>
+  <a href="#" class="btn btn-on-accent">Submit Your Paper →</a>
+</div>
+
+<section id="steps">
+  <div class="container">
+    <div class="sec-head">
+      <div><div class="sec-eyebrow">How to submit</div><h2 class="sec-title">Submission Process</h2></div>
+      <p class="sec-note">Three steps from draft to review.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="n">STEP 01</div>
+        <h4>Prepare Your Paper</h4>
+        <p>Format your paper using the AINTEC 2027 proceedings template. Papers must be written in English and should not exceed 12 pages including references.</p>
+      </div>
+      <div class="step">
+        <div class="n">STEP 02</div>
+        <h4>Submit Your Manuscript</h4>
+        <p>Submit your paper through the AINTEC 2027 submission platform. Create an account if you don't have one and follow the instructions carefully.</p>
+      </div>
+      <div class="step">
+        <div class="n">STEP 03</div>
+        <h4>Peer Review</h4>
+        <p>Your paper will be reviewed by at least two independent reviewers. Authors will be notified of the decision by April 15, 2027.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="guidelines" style="background:var(--white);border-top:1px solid var(--line);border-bottom:1px solid var(--line);">
+  <div class="container">
+    <div class="sec-head">
+      <div><div class="sec-eyebrow">Instructions</div><h2 class="sec-title">Submission Guidelines</h2></div>
+    </div>
+    <div class="guide-grid">
+      <div class="guide-card">
+        <h4>Paper Requirements</h4>
+        <ul class="guide-list">
+          <li>Papers must be written in English</li>
+          <li>Maximum 12 pages including references</li>
+          <li>Must follow the AINTEC 2027 proceedings format</li>
+          <li>PDF format only for initial submission</li>
+          <li>Anonymous review — remove author information</li>
+          <li>Original and unpublished work only</li>
+        </ul>
+      </div>
+      <div class="guide-card">
+        <h4>Important Notes</h4>
+        <ul class="guide-list">
+          <li>At least one author must register for the conference</li>
+          <li>Accepted papers must be presented at the conference</li>
+          <li>Plagiarism will result in immediate rejection</li>
+          <li>Simultaneous submission to other venues is not allowed</li>
+          <li>Camera-ready papers due: May 10, 2027</li>
+          <li>Source files (LaTeX or Word) required after acceptance</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="templates">
+  <div class="container">
+    <div class="sec-head">
+      <div><div class="sec-eyebrow">Downloads</div><h2 class="sec-title">Proceedings Templates</h2></div>
+      <p class="sec-note">Publisher and final template files to be announced.</p>
+    </div>
+    <div class="tpl-grid">
+      <div class="tpl-card">
+        <div class="tpl-icon">.DOCX</div>
+        <div class="tpl-info">
+          <h4>Microsoft Word Template</h4>
+          <p>AINTEC 2027 proceedings template for Word users</p>
+          <a href="#">⬇ Download Word Template</a>
+        </div>
+      </div>
+      <div class="tpl-card">
+        <div class="tpl-icon">.TEX</div>
+        <div class="tpl-info">
+          <h4>LaTeX Template</h4>
+          <p>AINTEC 2027 proceedings template for LaTeX users</p>
+          <a href="#">⬇ Download LaTeX Template</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="cta-band">
+  <h3>Ready to submit your paper?</h3>
+  <p>Submission platform link to be announced — check back soon or watch your inbox.</p>
+  <a href="#" class="btn btn-on-accent">Submit Your Paper →</a>
+</div>
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="wordmark">AINTEC <b>2027</b></div>
+      <p>International Conference on Artificial Intelligence, Networking and Emerging Technologies. Hosted by ISGA Campus Marrakech, member of the Edvantis Group.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Navigate</h4>
+      <ul class="footer-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="dates.html">Important Dates</a></li>
+        <li><a href="committees.html">Committees</a></li>
+        <li><a href="submission.html">Submission</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Participate</h4>
+      <ul class="footer-links">
+        <li><a href="registration.html">Registration</a></li>
+        <li><a href="access-map.html">Access Map</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <ul class="footer-links">
+        <li><a href="mailto:contact@aintec2027.org">contact@aintec2027.org</a></li>
+        <li>Rue Ibn Habbous, Marrakech 40000</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div>© 2027 AINTEC — ISGA Campus Marrakech.</div>
+    <div>Organized by ISGA, member of the Edvantis Group.</div>
+  </div>
+</footer>
+
+</body>
+</html>
