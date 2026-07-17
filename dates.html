@@ -44,7 +44,12 @@ section{padding:4.5rem 0;}
 .sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:1.5rem;margin-bottom:2.6rem;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:1.5rem;}
 .sec-eyebrow{font-size:.74rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--majorelle);margin-bottom:.5rem;}
 .sec-title{font-size:clamp(1.4rem,2.2vw,1.9rem);}
-.dates-intro{font-size:.96rem;color:var(--muted);line-height:1.75;text-align:justify;max-width:780px;margin-bottom:2.6rem;}
+
+/* Intro (text + network animation) */
+.intro-grid{display:grid;grid-template-columns:7fr 3fr;gap:3rem;align-items:center;}
+.intro-text{font-size:.96rem;color:var(--muted);line-height:1.75;text-align:justify;}
+.intro-visual{position:relative;min-height:300px;}
+.intro-visual canvas{width:100%;height:100%;display:block;}
 
 /* Timeline */
 .timeline{border:1px solid var(--line);background:var(--white);}
@@ -69,6 +74,10 @@ footer{background:var(--ink);color:#c9c6bc;padding:4rem 2rem 0;}
 .footer-links a:hover{color:#7c8cff;}
 .footer-bottom{max-width:1240px;margin:0 auto;padding:1.4rem 0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem;font-size:.76rem;color:#726f66;}
 
+@media(max-width:900px){
+  .intro-grid{grid-template-columns:1fr;}
+  .intro-visual{min-height:220px;order:-1;}
+}
 @media(max-width:720px){
   .nav-menu{display:none;position:absolute;top:76px;left:0;right:0;background:var(--white);border-bottom:1px solid var(--line);flex-direction:column;gap:0;padding:.5rem 0;}
   .nav-menu.open{display:flex;}
@@ -111,11 +120,19 @@ footer{background:var(--ink);color:#c9c6bc;padding:4rem 2rem 0;}
   <div class="page-header-inner">
     <div class="breadcrumb"><a href="index.html">Home</a> / Important Dates</div>
     <h1>Important Dates</h1>
-    <p>Every deadline for authors and attendees of AINTEC 2027, in one timeline.</p>
   </div>
 </div>
 
 <section>
+  <div class="container">
+    <div class="intro-grid">
+      <p class="intro-text">AINTEC 2027 welcomes original and high-quality research contributions. Submitted manuscripts must not have been previously published, accepted for publication, or be under review by any other conference, journal, or workshop at the time of submission. Compliance with these policies ensures the integrity of the peer-review process and the quality of the conference proceedings. Please refer to the important dates below for all submission deadlines and conference milestones.</p>
+      <div class="intro-visual"><canvas id="networkCanvas" aria-hidden="true"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0;">
   <div class="container">
     <div class="sec-head">
       <div>
@@ -123,8 +140,6 @@ footer{background:var(--ink);color:#c9c6bc;padding:4rem 2rem 0;}
         <h2 class="sec-title">Key Deadlines</h2>
       </div>
     </div>
-
-    <p class="dates-intro">Every submission to AINTEC 2027 is expected to be the authors' own original work, not previously made public anywhere else. A manuscript under review for this conference cannot be under review anywhere else at the same time, whether at another conference, in a journal, or in a separate set of proceedings — nor can it be a paper that has already appeared in print elsewhere. These expectations keep the review process fair for every author and give the conference proceedings their value once published. The schedule below lays out every date that matters between now and the closing session in Marrakech.</p>
 
     <div class="timeline">
       <div class="tl-row milestone">
@@ -196,6 +211,66 @@ footer{background:var(--ink);color:#c9c6bc;padding:4rem 2rem 0;}
     <div>Organized by ISGA, member of the Edvantis Group.</div>
   </div>
 </footer>
+
+<script>
+// Animated node network (AI / networking motif), transparent background — same as index.html.
+(function(){
+  const canvas = document.getElementById('networkCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function resize(){
+    canvas.width = canvas.clientWidth * devicePixelRatio;
+    canvas.height = canvas.clientHeight * devicePixelRatio;
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const COUNT = 20;
+  const nodes = Array.from({ length: COUNT }, () => ({
+    x: Math.random() * canvas.clientWidth,
+    y: Math.random() * canvas.clientHeight,
+    vx: (Math.random() - 0.5) * 0.25,
+    vy: (Math.random() - 0.5) * 0.25
+  }));
+
+  function tick(){
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    ctx.clearRect(0, 0, w, h);
+
+    nodes.forEach(n => {
+      if (!reduceMotion) { n.x += n.vx; n.y += n.vy; }
+      if (n.x < 0 || n.x > w) n.vx *= -1;
+      if (n.y < 0 || n.y > h) n.vy *= -1;
+    });
+
+    for (let i = 0; i < COUNT; i++) {
+      for (let j = i + 1; j < COUNT; j++) {
+        const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < 130) {
+          ctx.strokeStyle = `rgba(43,63,224,${(1 - dist / 130) * 0.55})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    nodes.forEach(n => {
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, 2.6, 0, Math.PI * 2);
+      ctx.fillStyle = '#1c7a5c';
+      ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+</script>
 
 </body>
 </html>
