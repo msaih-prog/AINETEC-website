@@ -17,8 +17,8 @@ const supabaseAdmin = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
 
-const GMAIL_USER = Deno.env.get("GMAIL_USER")!; // ainetec@isga.ma
-const GMAIL_APP_PASSWORD = Deno.env.get("GMAIL_APP_PASSWORD")!;
+const SMTP_USER = Deno.env.get("SMTP_USER")!; // ainetec@isga.ma
+const SMTP_PASSWORD = Deno.env.get("SMTP_PASSWORD")!; // mot de passe d'application (pas le mot de passe du compte)
 
 // Constantes de la conférence — à tenir synchronisées si les dates/liens changent.
 const CONFERENCE = "AINETEC 2027 — International Conference on Artificial Intelligence, Networking and Emerging Technologies";
@@ -31,10 +31,10 @@ const BRAND_COLOR = "#2b3fe0"; // Majorelle — couleur de marque AINETEC pour l
 function client() {
   return new SMTPClient({
     connection: {
-      hostname: "smtp.gmail.com",
-      port: 465,
-      tls: true,
-      auth: { username: GMAIL_USER, password: GMAIL_APP_PASSWORD },
+      hostname: "smtp.office365.com",
+      port: 587,
+      tls: false, // STARTTLS sur le port 587 (Office 365 n'utilise pas le TLS implicite du port 465)
+      auth: { username: SMTP_USER, password: SMTP_PASSWORD },
     },
   });
 }
@@ -112,7 +112,7 @@ async function envoyerAttestation(participantId: string) {
   const { sujet, html } = getAttestationEmailContent(p.categorie, p.prenom, p.nom);
   const smtp = client();
   await smtp.send({
-    from: `AINETEC 2027 Organizing Committee <${GMAIL_USER}>`,
+    from: `AINETEC 2027 Organizing Committee <${SMTP_USER}>`,
     to: p.email,
     subject: sujet,
     content: "auto",
@@ -167,7 +167,7 @@ async function envoyerEmailReviewer(assignmentId: string) {
 
   const smtp = client();
   await smtp.send({
-    from: `AINETEC 2027 Organizing Committee <${GMAIL_USER}>`,
+    from: `AINETEC 2027 Organizing Committee <${SMTP_USER}>`,
     to: a.reviewer.email,
     subject: sujet,
     content: "auto",
@@ -209,7 +209,7 @@ async function relancerReviewer(assignmentId: string) {
 
   const smtp = client();
   await smtp.send({
-    from: `AINETEC 2027 Organizing Committee <${GMAIL_USER}>`,
+    from: `AINETEC 2027 Organizing Committee <${SMTP_USER}>`,
     to: a.reviewer.email,
     subject: sujet,
     content: "auto",
@@ -292,7 +292,7 @@ async function sendDecision(paperId: string) {
 
   const smtp = client();
   await smtp.send({
-    from: `AINETEC 2027 Organizing Committee <${GMAIL_USER}>`,
+    from: `AINETEC 2027 Organizing Committee <${SMTP_USER}>`,
     to: p.email_auteur,
     subject: sujet,
     content: "auto",
