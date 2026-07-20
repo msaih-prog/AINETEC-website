@@ -23,9 +23,9 @@ const GMAIL_APP_PASSWORD = Deno.env.get("GMAIL_APP_PASSWORD")!;
 // Constantes de la conférence — à tenir synchronisées si les dates/liens changent.
 const CONFERENCE = "AINETEC 2027 — International Conference on Artificial Intelligence, Networking and Emerging Technologies";
 const DATES = "held from June 1 to 3, 2027, at ISGA Campus Marrakech, Morocco";
-const REGISTRATION_LINK = "https://www.ainetec2027.com/registration.html"; // TODO: remplacer par le vrai domaine une fois publié
+const REGISTRATION_LINK = "https://msaih-prog.github.io/AINETEC-website/registration.html";
 const CHAIR_EMAIL = "ainetec@isga.ma";
-const SITE_URL = "https://www.ainetec2027.com"; // TODO: remplacer par le vrai domaine une fois publié
+const SITE_URL = "https://msaih-prog.github.io/AINETEC-website";
 const BRAND_COLOR = "#2b3fe0"; // Majorelle — couleur de marque AINETEC pour liens/boutons dans les emails
 
 function client() {
