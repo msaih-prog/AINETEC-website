@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reviewer Dashboard — AINETEC 2027</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800;900&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --plaster:#f3f1ec; --ink:#15171c; --muted:#5b584f; --line:#cdc7ba;
+  --majorelle:#2b3fe0; --majorelle-soft:#dde1fb; --majorelle-light:#7c8cff;
+  --teal:#1c7a5c; --teal-soft:#dcece4; --white:#ffffff; --red:#d13a2f;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Work Sans',ui-sans-serif,system-ui,sans-serif;background:var(--plaster);color:var(--ink);font-size:16px;line-height:1.6;min-height:100vh;}
+h1,h2{font-family:'Unbounded',ui-sans-serif,sans-serif;font-weight:800;letter-spacing:-0.01em;}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace;}
+a{color:inherit;}
+
+.topbar{background:var(--ink);color:#e7e4dc;padding:.9rem 2rem;font-size:.8rem;display:flex;justify-content:space-between;}
+.topbar b{color:var(--majorelle-light);}
+.wrap{max-width:760px;margin:0 auto;padding:3rem 2rem;}
+.eyebrow{font-family:'IBM Plex Mono';font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--majorelle);margin-bottom:.6rem;}
+h1{font-size:1.7rem;margin-bottom:.4rem;}
+.subtitle{color:var(--muted);margin-bottom:2rem;}
+
+.banner{background:#fbe4e1;border:1px solid var(--red);color:#8c2a22;padding:1rem 1.3rem;border-radius:3px;margin-bottom:1.6rem;font-size:.9rem;}
+
+.card{background:var(--white);border:1px solid var(--line);padding:1.3rem 1.5rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;text-decoration:none;transition:border-color .15s;}
+.card.clickable:hover{border-color:var(--majorelle);}
+.card .pid{font-family:'IBM Plex Mono';font-size:.72rem;color:var(--majorelle);font-weight:700;letter-spacing:.03em;margin-bottom:.3rem;}
+.card .ptitle{font-weight:700;font-size:.98rem;}
+.card .rnum{color:var(--muted);font-size:.82rem;margin-top:.3rem;}
+.badge{display:inline-block;padding:.3rem .7rem;border-radius:10px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;}
+.badge.pending{background:var(--majorelle-soft);color:var(--majorelle);}
+.badge.done{background:var(--teal-soft);color:var(--teal);}
+
+.state-msg{text-align:center;padding:4rem 1rem;color:var(--muted);}
+.state-msg.error{color:var(--red);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>AINETEC <b>2027</b> — Reviewer Portal</div>
+  <div>ainetec@isga.ma</div>
+</div>
+
+<div class="wrap">
+  <div id="content">
+    <div class="state-msg">Loading your dashboard…</div>
+  </div>
+</div>
+
+<script src="supabase-config.js"></script>
+<script>
+const FUNCTIONS_BASE = SUPABASE_URL + '/functions/v1';
+const params = new URLSearchParams(window.location.search);
+const token = params.get('token');
+const content = document.getElementById('content');
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+async function init() {
+  if (!token) {
+    content.innerHTML = '<div class="state-msg error">Missing access token. Please use the link from your invitation email.</div>';
+    return;
+  }
+  try {
+    const res = await fetch(`${FUNCTIONS_BASE}/reviewer-dashboard?token=${encodeURIComponent(token)}`);
+    const data = await res.json();
+    if (!data.succes) {
+      content.innerHTML = `<div class="state-msg error">${escapeHtml(data.message || 'This link is not valid.')}</div>`;
+      return;
+    }
+
+    let html = `
+      <div class="eyebrow">Reviewer Dashboard</div>
+      <h1>Welcome, ${escapeHtml(data.reviewer.prenom)} ${escapeHtml(data.reviewer.nom)}</h1>
+      <p class="subtitle">Here are the papers assigned to you for AINETEC 2027.</p>
+    `;
+
+    if (data.sessionOuverte === false) {
+      html += `<div class="banner">The review period is currently closed. You can no longer submit or edit reviews.</div>`;
+    }
+
+    if (!data.assignments.length) {
+      html += `<div class="state-msg">No papers have been assigned to you yet.</div>`;
+    } else {
+      html += data.assignments.map(a => {
+        const done = a.statut === 'Review reçue';
+        const clickable = !done && data.sessionOuverte !== false;
+        const inner = `
+          <div>
+            <div class="pid">${escapeHtml(a.paperID)} — Reviewer ${a.numReviewer}</div>
+            <div class="ptitle">${escapeHtml(a.titre)}</div>
+          </div>
+          <span class="badge ${done ? 'done' : 'pending'}">${done ? 'Submitted' : 'Pending'}</span>
+        `;
+        return clickable
+          ? `<a class="card clickable" href="reviewer-form.html?token=${encodeURIComponent(token)}&assignment=${encodeURIComponent(a.id)}">${inner}</a>`
+          : `<div class="card">${inner}</div>`;
+      }).join('');
+    }
+
+    content.innerHTML = html;
+  } catch (e) {
+    content.innerHTML = '<div class="state-msg error">Something went wrong. Please try again later.</div>';
+  }
+}
+init();
+</script>
+
+</body>
+</html>

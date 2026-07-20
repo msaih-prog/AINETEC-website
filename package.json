@@ -1,0 +1,8 @@
+{
+  "name": "ainetec-website-tools",
+  "private": true,
+  "description": "Dev tooling only (Supabase CLI) — the website itself is plain static HTML/JS and needs no build step.",
+  "devDependencies": {
+    "supabase": "^2.31.4"
+  }
+}

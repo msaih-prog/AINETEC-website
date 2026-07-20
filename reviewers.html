@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reviewers — AINETEC 2027 Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800;900&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --plaster:#f3f1ec; --ink:#15171c; --muted:#5b584f; --line:#cdc7ba;
+  --majorelle:#2b3fe0; --majorelle-soft:#dde1fb; --majorelle-light:#7c8cff;
+  --teal:#1c7a5c; --teal-soft:#dcece4; --white:#ffffff; --red:#d13a2f;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Work Sans',ui-sans-serif,system-ui,sans-serif;background:var(--plaster);color:var(--ink);font-size:15px;line-height:1.5;}
+h1,h2,h3{font-family:'Unbounded',ui-sans-serif,sans-serif;font-weight:800;letter-spacing:-0.01em;}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace;}
+a{color:inherit;}
+button{font-family:inherit;}
+
+/* ===== LOGIN ===== */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--ink);}
+.login-card{background:var(--white);padding:2.6rem;width:360px;border-radius:3px;}
+.login-card .kicker{font-family:'IBM Plex Mono';font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--majorelle);margin-bottom:.6rem;}
+.login-card h1{font-size:1.15rem;margin-bottom:1.6rem;}
+.login-card label{font-size:.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:.35rem;}
+.login-card input{width:100%;padding:.75rem .9rem;margin-bottom:1.1rem;border:1px solid var(--line);border-radius:2px;font-size:.9rem;background:var(--plaster);}
+.login-card input:focus{outline:2px solid var(--majorelle-soft);border-color:var(--majorelle);}
+.login-card button{width:100%;padding:.85rem;background:var(--majorelle);color:#fff;border:none;border-radius:2px;font-weight:700;cursor:pointer;font-size:.85rem;letter-spacing:.02em;}
+.login-card button:disabled{opacity:.6;cursor:default;}
+#login-error{color:var(--red);font-size:.8rem;margin-bottom:1rem;display:none;}
+
+/* ===== ADMIN SHELL ===== */
+#main-app{display:none;}
+.admin-topbar{background:var(--ink);color:#fff;padding:.9rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;}
+.admin-topbar .brand{font-family:'Unbounded';font-weight:800;font-size:.95rem;display:flex;align-items:center;gap:.6rem;}
+.admin-topbar .brand b{color:var(--majorelle-light);}
+.admin-topbar .brand .tag{font-family:'IBM Plex Mono';font-size:.62rem;background:rgba(255,255,255,.1);padding:.2rem .5rem;border-radius:2px;color:#c9c6bc;letter-spacing:.05em;}
+.admin-nav{display:flex;gap:1.6rem;font-size:.8rem;}
+.admin-nav a{color:#a9a6bb;text-decoration:none;font-weight:600;padding-bottom:.2rem;border-bottom:2px solid transparent;}
+.admin-nav a.active{color:#fff;border-color:var(--majorelle-light);}
+.admin-nav a:hover{color:#fff;}
+.logout-btn{background:none;border:1px solid rgba(255,255,255,.3);color:#fff;padding:.45rem .9rem;border-radius:2px;font-size:.75rem;cursor:pointer;}
+.logout-btn:hover{background:rgba(255,255,255,.08);}
+
+.admin-body{max-width:1240px;margin:0 auto;padding:2.2rem 2rem 4rem;}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem;margin-bottom:1.6rem;}
+.page-head .eyebrow{font-family:'IBM Plex Mono';font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--majorelle);margin-bottom:.4rem;}
+.page-head h1{font-size:1.5rem;}
+.stats-row{display:flex;gap:1rem;margin-bottom:1.6rem;flex-wrap:wrap;}
+.stat-box{background:var(--white);border:1px solid var(--line);padding:1rem 1.3rem;min-width:140px;}
+.stat-box .n{font-family:'IBM Plex Mono';font-weight:700;font-size:1.5rem;color:var(--majorelle);}
+.stat-box .l{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:.2rem;}
+
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.65rem 1.2rem;font-size:.82rem;font-weight:700;border:none;border-radius:2px;cursor:pointer;text-decoration:none;letter-spacing:.01em;}
+.btn-primary{background:var(--majorelle);color:#fff;}
+.btn-primary:hover{background:#2233b8;}
+.btn-ghost{background:var(--white);color:var(--ink);border:1px solid var(--line);}
+.btn-ghost:hover{border-color:var(--majorelle);color:var(--majorelle);}
+.btn-danger{background:var(--white);color:var(--red);border:1px solid var(--red);}
+.btn-danger:hover{background:var(--red);color:#fff;}
+.btn-sm{padding:.4rem .7rem;font-size:.72rem;}
+.btn:disabled{opacity:.5;cursor:default;}
+
+.panel{background:var(--white);border:1px solid var(--line);margin-bottom:1.6rem;}
+.panel-head{padding:1rem 1.4rem;border-bottom:1px solid var(--line);font-weight:700;font-size:.9rem;display:flex;justify-content:space-between;align-items:center;}
+.panel-body{padding:1.4rem;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem;}
+.form-grid label{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:.35rem;}
+.form-grid input{width:100%;padding:.65rem .8rem;border:1px solid var(--line);border-radius:2px;font-size:.88rem;}
+.form-actions{display:flex;gap:.7rem;}
+
+.toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;}
+.search-input{padding:.6rem .9rem;border:1px solid var(--line);border-radius:2px;font-size:.85rem;min-width:240px;}
+
+table{width:100%;border-collapse:collapse;background:var(--white);}
+thead th{background:var(--majorelle-soft);text-align:left;padding:.75rem 1rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;color:var(--majorelle);border-bottom:1px solid var(--line);}
+tbody td{padding:.8rem 1rem;font-size:.85rem;border-bottom:1px solid var(--line);vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:#faf9f7;}
+.token-cell{font-family:'IBM Plex Mono';font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:.5rem;}
+.copy-btn{background:none;border:1px solid var(--line);border-radius:2px;padding:.25rem .5rem;font-size:.68rem;cursor:pointer;color:var(--muted);}
+.copy-btn:hover{border-color:var(--majorelle);color:var(--majorelle);}
+.count-badge{display:inline-block;background:var(--teal-soft);color:var(--teal);font-family:'IBM Plex Mono';font-size:.72rem;font-weight:700;padding:.2rem .55rem;border-radius:10px;}
+.row-actions{display:flex;gap:.5rem;}
+.empty-row td{text-align:center;color:var(--muted);padding:2.5rem 1rem;}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--ink);color:#fff;padding:.85rem 1.3rem;border-radius:3px;font-size:.85rem;box-shadow:0 8px 20px rgba(0,0,0,.25);opacity:0;transform:translateY(12px);transition:opacity .2s,transform .2s;z-index:999;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.err{background:var(--red);}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <div class="kicker">AINETEC 2027 — Admin</div>
+    <h1>Sign in to continue</h1>
+    <div id="login-error"></div>
+    <label for="email-input">Email</label>
+    <input id="email-input" type="email" autocomplete="username" placeholder="you@example.com">
+    <label for="pwd-input">Password</label>
+    <input id="pwd-input" type="password" autocomplete="current-password" placeholder="••••••••">
+    <button id="login-btn" onclick="checkLogin()">Access</button>
+  </div>
+</div>
+
+<div id="main-app">
+  <div class="admin-topbar">
+    <div class="brand">AINETEC <b>2027</b> <span class="tag">ADMIN</span></div>
+    <div class="admin-nav">
+      <a href="assignments.html">Assignments</a>
+      <a href="review.html">Reviewing Papers</a>
+      <a href="reviewers.html" class="active">Reviewers</a>
+      <a href="Attestations.html">Attestations</a>
+    </div>
+    <button class="logout-btn" onclick="logout()">Log out</button>
+  </div>
+
+  <div class="admin-body">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">Peer Review</div>
+        <h1>Reviewers</h1>
+      </div>
+      <button class="btn btn-primary" onclick="openForm()">+ Add Reviewer</button>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-box"><div class="n" id="stat-total">0</div><div class="l">Total reviewers</div></div>
+      <div class="stat-box"><div class="n" id="stat-assigned">0</div><div class="l">With assignments</div></div>
+    </div>
+
+    <div class="panel" id="form-panel" style="display:none;">
+      <div class="panel-head">
+        <span id="form-title">Add Reviewer</span>
+        <button class="btn btn-ghost btn-sm" onclick="closeForm()">Cancel</button>
+      </div>
+      <div class="panel-body">
+        <div class="form-grid">
+          <div><label>First name</label><input id="f-prenom" type="text"></div>
+          <div><label>Last name</label><input id="f-nom" type="text"></div>
+          <div><label>Email</label><input id="f-email" type="email"></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveReviewer()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="toolbar" style="padding:1.2rem 1.4rem 0;">
+        <input class="search-input" id="search-input" type="text" placeholder="Search by name or email…" oninput="renderTable()">
+        <button class="btn btn-ghost btn-sm" onclick="clearAllReviewers()">Clear all</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Token</th>
+              <th>Assignments</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="reviewers-tbody">
+            <tr class="empty-row"><td colspan="5">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script>
+let reviewers = [];
+let assignmentCounts = {};
+let editingId = null;
+
+function showToast(msg, isErr) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isErr ? ' err' : '');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+async function checkLogin() {
+  const email = document.getElementById('email-input').value.trim();
+  const pwd = document.getElementById('pwd-input').value;
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  const { error } = await sb.auth.signInWithPassword({ email, password: pwd });
+  btn.disabled = false; btn.textContent = 'Access';
+  if (error) {
+    document.getElementById('login-error').textContent = error.message;
+    document.getElementById('login-error').style.display = 'block';
+    return;
+  }
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  loadAll();
+}
+
+async function logout() {
+  await sb.auth.signOut();
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('main-app').style.display = 'none';
+}
+
+(async function initSession() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block';
+    loadAll();
+  }
+})();
+
+async function loadAll() {
+  const { data: rev, error: revErr } = await sb.from('reviewers').select('*').order('nom');
+  if (revErr) { showToast(revErr.message, true); return; }
+  reviewers = rev || [];
+
+  const { data: assigns } = await sb.from('assignments').select('reviewer_id');
+  assignmentCounts = {};
+  (assigns || []).forEach(a => { assignmentCounts[a.reviewer_id] = (assignmentCounts[a.reviewer_id] || 0) + 1; });
+
+  renderStats();
+  renderTable();
+}
+
+function renderStats() {
+  document.getElementById('stat-total').textContent = reviewers.length;
+  document.getElementById('stat-assigned').textContent = reviewers.filter(r => assignmentCounts[r.id]).length;
+}
+
+function renderTable() {
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  const tbody = document.getElementById('reviewers-tbody');
+  const filtered = reviewers.filter(r =>
+    !q || `${r.nom} ${r.prenom} ${r.email}`.toLowerCase().includes(q)
+  );
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No reviewers found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(r => `
+    <tr>
+      <td><strong>${escapeHtml(r.prenom)} ${escapeHtml(r.nom)}</strong></td>
+      <td>${escapeHtml(r.email)}</td>
+      <td><span class="token-cell">${r.token.slice(0, 10)}…<button class="copy-btn" onclick="copyToken('${r.token}')">Copy link</button></span></td>
+      <td>${assignmentCounts[r.id] ? `<span class="count-badge">${assignmentCounts[r.id]}</span>` : '—'}</td>
+      <td>
+        <div class="row-actions">
+          <button class="btn btn-ghost btn-sm" onclick="editReviewer('${r.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteReviewer('${r.id}')">Delete</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function copyToken(token) {
+  const link = `${window.location.origin}/reviewer-dashboard.html?token=${token}`;
+  navigator.clipboard.writeText(link).then(() => showToast('Dashboard link copied.'));
+}
+
+function openForm() {
+  editingId = null;
+  document.getElementById('form-title').textContent = 'Add Reviewer';
+  document.getElementById('f-prenom').value = '';
+  document.getElementById('f-nom').value = '';
+  document.getElementById('f-email').value = '';
+  document.getElementById('form-panel').style.display = 'block';
+}
+
+function closeForm() {
+  document.getElementById('form-panel').style.display = 'none';
+}
+
+function editReviewer(id) {
+  const r = reviewers.find(x => x.id === id);
+  if (!r) return;
+  editingId = id;
+  document.getElementById('form-title').textContent = 'Edit Reviewer';
+  document.getElementById('f-prenom').value = r.prenom;
+  document.getElementById('f-nom').value = r.nom;
+  document.getElementById('f-email').value = r.email;
+  document.getElementById('form-panel').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function saveReviewer() {
+  const prenom = document.getElementById('f-prenom').value.trim();
+  const nom = document.getElementById('f-nom').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  if (!prenom || !nom || !email) { showToast('Please fill in all fields.', true); return; }
+
+  const payload = { nom, prenom, email };
+  const { error } = editingId
+    ? await sb.from('reviewers').update(payload).eq('id', editingId)
+    : await sb.from('reviewers').insert(payload);
+  if (error) { showToast(error.message, true); return; }
+
+  showToast(editingId ? 'Reviewer updated.' : 'Reviewer added.');
+  closeForm();
+  loadAll();
+}
+
+async function deleteReviewer(id) {
+  if (!confirm('Delete this reviewer? Their assignments will also be removed.')) return;
+  const { error } = await sb.from('reviewers').delete().eq('id', id);
+  if (error) { showToast(error.message, true); return; }
+  showToast('Reviewer deleted.');
+  loadAll();
+}
+
+async function clearAllReviewers() {
+  if (!reviewers.length) return;
+  if (!confirm(`Delete all ${reviewers.length} reviewers? This cannot be undone.`)) return;
+  const { error } = await sb.from('reviewers').delete().in('id', reviewers.map(r => r.id));
+  if (error) { showToast(error.message, true); return; }
+  showToast('All reviewers deleted.');
+  loadAll();
+}
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+</script>
+
+</body>
+</html>

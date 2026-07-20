@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assignments — AINETEC 2027 Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800;900&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --plaster:#f3f1ec; --ink:#15171c; --muted:#5b584f; --line:#cdc7ba;
+  --majorelle:#2b3fe0; --majorelle-soft:#dde1fb; --majorelle-light:#7c8cff;
+  --teal:#1c7a5c; --teal-soft:#dcece4; --white:#ffffff; --red:#d13a2f;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Work Sans',ui-sans-serif,system-ui,sans-serif;background:var(--plaster);color:var(--ink);font-size:15px;line-height:1.5;}
+h1,h2,h3{font-family:'Unbounded',ui-sans-serif,sans-serif;font-weight:800;letter-spacing:-0.01em;}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace;}
+a{color:inherit;}
+button{font-family:inherit;}
+
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--ink);}
+.login-card{background:var(--white);padding:2.6rem;width:360px;border-radius:3px;}
+.login-card .kicker{font-family:'IBM Plex Mono';font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--majorelle);margin-bottom:.6rem;}
+.login-card h1{font-size:1.15rem;margin-bottom:1.6rem;}
+.login-card label{font-size:.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:.35rem;}
+.login-card input{width:100%;padding:.75rem .9rem;margin-bottom:1.1rem;border:1px solid var(--line);border-radius:2px;font-size:.9rem;background:var(--plaster);}
+.login-card input:focus{outline:2px solid var(--majorelle-soft);border-color:var(--majorelle);}
+.login-card button{width:100%;padding:.85rem;background:var(--majorelle);color:#fff;border:none;border-radius:2px;font-weight:700;cursor:pointer;font-size:.85rem;letter-spacing:.02em;}
+.login-card button:disabled{opacity:.6;cursor:default;}
+#login-error{color:var(--red);font-size:.8rem;margin-bottom:1rem;display:none;}
+
+#main-app{display:none;}
+.admin-topbar{background:var(--ink);color:#fff;padding:.9rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;}
+.admin-topbar .brand{font-family:'Unbounded';font-weight:800;font-size:.95rem;display:flex;align-items:center;gap:.6rem;}
+.admin-topbar .brand b{color:var(--majorelle-light);}
+.admin-topbar .brand .tag{font-family:'IBM Plex Mono';font-size:.62rem;background:rgba(255,255,255,.1);padding:.2rem .5rem;border-radius:2px;color:#c9c6bc;letter-spacing:.05em;}
+.admin-nav{display:flex;gap:1.6rem;font-size:.8rem;}
+.admin-nav a{color:#a9a6bb;text-decoration:none;font-weight:600;padding-bottom:.2rem;border-bottom:2px solid transparent;}
+.admin-nav a.active{color:#fff;border-color:var(--majorelle-light);}
+.admin-nav a:hover{color:#fff;}
+.logout-btn{background:none;border:1px solid rgba(255,255,255,.3);color:#fff;padding:.45rem .9rem;border-radius:2px;font-size:.75rem;cursor:pointer;}
+.logout-btn:hover{background:rgba(255,255,255,.08);}
+
+.admin-body{max-width:1240px;margin:0 auto;padding:2.2rem 2rem 4rem;}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem;margin-bottom:1.6rem;}
+.page-head .eyebrow{font-family:'IBM Plex Mono';font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--majorelle);margin-bottom:.4rem;}
+.page-head h1{font-size:1.5rem;}
+.stats-row{display:flex;gap:1rem;margin-bottom:1.6rem;flex-wrap:wrap;}
+.stat-box{background:var(--white);border:1px solid var(--line);padding:1rem 1.3rem;min-width:140px;}
+.stat-box .n{font-family:'IBM Plex Mono';font-weight:700;font-size:1.5rem;color:var(--majorelle);}
+.stat-box .l{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:.2rem;}
+
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.65rem 1.2rem;font-size:.82rem;font-weight:700;border:none;border-radius:2px;cursor:pointer;text-decoration:none;letter-spacing:.01em;}
+.btn-primary{background:var(--majorelle);color:#fff;}
+.btn-primary:hover{background:#2233b8;}
+.btn-ghost{background:var(--white);color:var(--ink);border:1px solid var(--line);}
+.btn-ghost:hover{border-color:var(--majorelle);color:var(--majorelle);}
+.btn-danger{background:var(--white);color:var(--red);border:1px solid var(--red);}
+.btn-danger:hover{background:var(--red);color:#fff;}
+.btn-teal{background:var(--teal);color:#fff;}
+.btn-teal:hover{background:#15624a;}
+.btn-sm{padding:.4rem .7rem;font-size:.72rem;}
+.btn:disabled{opacity:.5;cursor:default;}
+
+.panel{background:var(--white);border:1px solid var(--line);margin-bottom:1.6rem;}
+.panel-head{padding:1rem 1.4rem;border-bottom:1px solid var(--line);font-weight:700;font-size:.9rem;display:flex;justify-content:space-between;align-items:center;}
+.panel-body{padding:1.4rem;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem;}
+.form-grid label{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:.35rem;}
+.form-grid input{width:100%;padding:.65rem .8rem;border:1px solid var(--line);border-radius:2px;font-size:.88rem;}
+.form-actions{display:flex;gap:.7rem;}
+
+.toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;}
+.search-input{padding:.6rem .9rem;border:1px solid var(--line);border-radius:2px;font-size:.85rem;min-width:240px;}
+
+.paper-card{background:var(--white);border:1px solid var(--line);margin-bottom:1rem;}
+.paper-head{padding:1.1rem 1.4rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem;border-bottom:1px solid var(--line);}
+.paper-head .pid{font-family:'IBM Plex Mono';font-size:.7rem;color:var(--majorelle);font-weight:700;letter-spacing:.03em;}
+.paper-head .ptitle{font-weight:700;font-size:.95rem;margin-top:.25rem;}
+.paper-head .pauthor{font-size:.78rem;color:var(--muted);margin-top:.2rem;}
+.paper-actions{display:flex;gap:.5rem;flex-wrap:wrap;}
+.paper-body{padding:1.1rem 1.4rem;}
+
+.assign-row{display:grid;grid-template-columns:40px 1fr 130px 100px 1fr;gap:.8rem;align-items:center;padding:.65rem 0;border-bottom:1px solid var(--line);font-size:.82rem;}
+.assign-row:last-child{border-bottom:none;}
+.assign-row .num{font-family:'IBM Plex Mono';font-weight:700;color:var(--majorelle);}
+.badge{display:inline-block;padding:.2rem .6rem;border-radius:10px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+.badge.pending{background:var(--majorelle-soft);color:var(--majorelle);}
+.badge.done{background:var(--teal-soft);color:var(--teal);}
+.assign-actions{display:flex;gap:.4rem;flex-wrap:wrap;}
+
+.add-assign{display:flex;gap:.6rem;padding-top:.8rem;flex-wrap:wrap;}
+.add-assign select{padding:.5rem .7rem;border:1px solid var(--line);border-radius:2px;font-size:.82rem;flex:1;min-width:180px;}
+
+.empty-msg{color:var(--muted);text-align:center;padding:2.5rem 1rem;font-size:.85rem;}
+.upload-input{display:none;}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--ink);color:#fff;padding:.85rem 1.3rem;border-radius:3px;font-size:.85rem;box-shadow:0 8px 20px rgba(0,0,0,.25);opacity:0;transform:translateY(12px);transition:opacity .2s,transform .2s;z-index:999;max-width:360px;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.err{background:var(--red);}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <div class="kicker">AINETEC 2027 — Admin</div>
+    <h1>Sign in to continue</h1>
+    <div id="login-error"></div>
+    <label for="email-input">Email</label>
+    <input id="email-input" type="email" autocomplete="username" placeholder="you@example.com">
+    <label for="pwd-input">Password</label>
+    <input id="pwd-input" type="password" autocomplete="current-password" placeholder="••••••••">
+    <button id="login-btn" onclick="checkLogin()">Access</button>
+  </div>
+</div>
+
+<div id="main-app">
+  <div class="admin-topbar">
+    <div class="brand">AINETEC <b>2027</b> <span class="tag">ADMIN</span></div>
+    <div class="admin-nav">
+      <a href="assignments.html" class="active">Assignments</a>
+      <a href="review.html">Reviewing Papers</a>
+      <a href="reviewers.html">Reviewers</a>
+      <a href="Attestations.html">Attestations</a>
+    </div>
+    <button class="logout-btn" onclick="logout()">Log out</button>
+  </div>
+
+  <div class="admin-body">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">Peer Review</div>
+        <h1>Papers &amp; Assignments</h1>
+      </div>
+      <button class="btn btn-primary" onclick="openPaperForm()">+ Add Paper</button>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-box"><div class="n" id="stat-papers">0</div><div class="l">Papers</div></div>
+      <div class="stat-box"><div class="n" id="stat-assignments">0</div><div class="l">Assignments</div></div>
+      <div class="stat-box"><div class="n" id="stat-received">0</div><div class="l">Reviews received</div></div>
+      <div class="stat-box"><div class="n" id="stat-reviewers">0</div><div class="l">Reviewers registered</div></div>
+    </div>
+
+    <div class="panel" id="paper-form-panel" style="display:none;">
+      <div class="panel-head">
+        <span id="paper-form-title">Add Paper</span>
+        <button class="btn btn-ghost btn-sm" onclick="closePaperForm()">Cancel</button>
+      </div>
+      <div class="panel-body">
+        <div class="form-grid">
+          <div><label>Paper ID</label><input id="pf-paper-id" type="text"></div>
+          <div><label>Author email</label><input id="pf-email" type="email"></div>
+          <div><label>Author first name</label><input id="pf-prenom" type="text"></div>
+          <div><label>Author last name</label><input id="pf-nom" type="text"></div>
+          <div style="grid-column:span 2;"><label>Title</label><input id="pf-titre" type="text"></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="savePaper()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <input class="search-input" id="search-input" type="text" placeholder="Search by paper ID, title or author…" oninput="renderPapers()">
+    </div>
+
+    <div id="papers-list"></div>
+  </div>
+</div>
+
+<input type="file" id="file-input" class="upload-input" accept=".pdf,.docx">
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script>
+let papers = [];
+let assignments = [];
+let reviewers = [];
+let editingPaperId = null;
+let pendingUploadPaperId = null;
+
+function showToast(msg, isErr) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isErr ? ' err' : '');
+  setTimeout(() => t.classList.remove('show'), 3600);
+}
+
+async function checkLogin() {
+  const email = document.getElementById('email-input').value.trim();
+  const pwd = document.getElementById('pwd-input').value;
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  const { error } = await sb.auth.signInWithPassword({ email, password: pwd });
+  btn.disabled = false; btn.textContent = 'Access';
+  if (error) {
+    document.getElementById('login-error').textContent = error.message;
+    document.getElementById('login-error').style.display = 'block';
+    return;
+  }
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  loadAll();
+}
+
+async function logout() {
+  await sb.auth.signOut();
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('main-app').style.display = 'none';
+}
+
+(async function initSession() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block';
+    loadAll();
+  }
+})();
+
+async function loadAll() {
+  const [papersRes, assignRes, revRes] = await Promise.all([
+    sb.from('papers').select('id, paper_id, titre, email_auteur, nom_auteur, prenom_auteur').order('created_at'),
+    sb.from('assignments').select('id, num_reviewer, statut, date_envoi, nb_relances, date_reponse, paper_id, reviewer:reviewers(id, nom, prenom, email)').order('num_reviewer'),
+    sb.from('reviewers').select('*').order('nom'),
+  ]);
+  if (papersRes.error) { showToast(papersRes.error.message, true); return; }
+  papers = papersRes.data || [];
+  assignments = assignRes.data || [];
+  reviewers = revRes.data || [];
+  renderStats();
+  renderPapers();
+}
+
+function renderStats() {
+  document.getElementById('stat-papers').textContent = papers.length;
+  document.getElementById('stat-assignments').textContent = assignments.length;
+  document.getElementById('stat-received').textContent = assignments.filter(a => a.statut === 'Review reçue').length;
+  document.getElementById('stat-reviewers').textContent = reviewers.length;
+}
+
+function renderPapers() {
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  const list = document.getElementById('papers-list');
+  const filtered = papers.filter(p =>
+    !q || `${p.paper_id} ${p.titre} ${p.email_auteur}`.toLowerCase().includes(q)
+  );
+  if (!filtered.length) {
+    list.innerHTML = '<div class="panel"><div class="empty-msg">No papers yet. Click "+ Add Paper" to create one.</div></div>';
+    return;
+  }
+  list.innerHTML = filtered.map(p => {
+    const pAssigns = assignments.filter(a => a.paper_id === p.id);
+    const assignedReviewerIds = pAssigns.map(a => a.reviewer.id);
+    const available = reviewers.filter(r => !assignedReviewerIds.includes(r.id));
+    return `
+    <div class="paper-card">
+      <div class="paper-head">
+        <div>
+          <div class="pid">${escapeHtml(p.paper_id)}</div>
+          <div class="ptitle">${escapeHtml(p.titre)}</div>
+          <div class="pauthor">${escapeHtml(p.prenom_auteur || '')} ${escapeHtml(p.nom_auteur || '')} &lt;${escapeHtml(p.email_auteur)}&gt;</div>
+        </div>
+        <div class="paper-actions">
+          <button class="btn btn-ghost btn-sm" onclick="triggerUpload('${p.id}')">Upload PDF/DOCX</button>
+          <button class="btn btn-ghost btn-sm" onclick="editPaper('${p.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deletePaper('${p.id}')">Delete</button>
+        </div>
+      </div>
+      <div class="paper-body">
+        ${pAssigns.length ? pAssigns.map(a => `
+          <div class="assign-row">
+            <div class="num">R${a.num_reviewer}</div>
+            <div>${escapeHtml(a.reviewer.prenom)} ${escapeHtml(a.reviewer.nom)}<br><span style="color:var(--muted);font-size:.75rem;">${escapeHtml(a.reviewer.email)}</span></div>
+            <div><span class="badge ${a.statut === 'Review reçue' ? 'done' : 'pending'}">${a.statut}</span></div>
+            <div style="color:var(--muted);font-size:.75rem;">${a.nb_relances ? a.nb_relances + ' reminder(s)' : ''}</div>
+            <div class="assign-actions">
+              ${a.date_envoi
+                ? `<button class="btn btn-ghost btn-sm" onclick="relancer('${a.id}')">Remind</button>`
+                : `<button class="btn btn-teal btn-sm" onclick="envoyerEmail('${a.id}')">Send request</button>`}
+              <button class="btn btn-danger btn-sm" onclick="deleteAssignment('${a.id}')">Remove</button>
+            </div>
+          </div>
+        `).join('') : '<div style="color:var(--muted);font-size:.82rem;padding:.5rem 0;">No reviewers assigned yet.</div>'}
+        ${available.length ? `
+          <div class="add-assign">
+            <select id="assign-select-${p.id}">
+              ${available.map(r => `<option value="${r.id}">${escapeHtml(r.prenom)} ${escapeHtml(r.nom)}</option>`).join('')}
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="assignReviewer('${p.id}')">Assign</button>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+  }).join('');
+}
+
+function openPaperForm() {
+  editingPaperId = null;
+  document.getElementById('paper-form-title').textContent = 'Add Paper';
+  document.getElementById('pf-paper-id').value = '';
+  document.getElementById('pf-email').value = '';
+  document.getElementById('pf-prenom').value = '';
+  document.getElementById('pf-nom').value = '';
+  document.getElementById('pf-titre').value = '';
+  document.getElementById('paper-form-panel').style.display = 'block';
+}
+function closePaperForm() { document.getElementById('paper-form-panel').style.display = 'none'; }
+
+function editPaper(id) {
+  const p = papers.find(x => x.id === id);
+  if (!p) return;
+  editingPaperId = id;
+  document.getElementById('paper-form-title').textContent = 'Edit Paper';
+  document.getElementById('pf-paper-id').value = p.paper_id;
+  document.getElementById('pf-email').value = p.email_auteur;
+  document.getElementById('pf-prenom').value = p.prenom_auteur || '';
+  document.getElementById('pf-nom').value = p.nom_auteur || '';
+  document.getElementById('pf-titre').value = p.titre;
+  document.getElementById('paper-form-panel').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function savePaper() {
+  const paper_id = document.getElementById('pf-paper-id').value.trim();
+  const email_auteur = document.getElementById('pf-email').value.trim();
+  const prenom_auteur = document.getElementById('pf-prenom').value.trim();
+  const nom_auteur = document.getElementById('pf-nom').value.trim();
+  const titre = document.getElementById('pf-titre').value.trim();
+  if (!paper_id || !email_auteur || !titre) { showToast('Paper ID, author email and title are required.', true); return; }
+
+  const payload = { paper_id, email_auteur, prenom_auteur, nom_auteur, titre };
+  const { error } = editingPaperId
+    ? await sb.from('papers').update(payload).eq('id', editingPaperId)
+    : await sb.from('papers').insert(payload);
+  if (error) { showToast(error.message, true); return; }
+  showToast(editingPaperId ? 'Paper updated.' : 'Paper added.');
+  closePaperForm();
+  loadAll();
+}
+
+async function deletePaper(id) {
+  if (!confirm('Delete this paper? All its assignments will also be removed.')) return;
+  const { error } = await sb.from('papers').delete().eq('id', id);
+  if (error) { showToast(error.message, true); return; }
+  showToast('Paper deleted.');
+  loadAll();
+}
+
+async function assignReviewer(paperId) {
+  const select = document.getElementById(`assign-select-${paperId}`);
+  const reviewerId = select.value;
+  const nextNum = assignments.filter(a => a.paper_id === paperId).length + 1;
+  const { error } = await sb.from('assignments').insert({ paper_id: paperId, reviewer_id: reviewerId, num_reviewer: nextNum });
+  if (error) { showToast(error.message, true); return; }
+  showToast('Reviewer assigned.');
+  loadAll();
+}
+
+async function deleteAssignment(id) {
+  if (!confirm('Remove this assignment?')) return;
+  const { error } = await sb.from('assignments').delete().eq('id', id);
+  if (error) { showToast(error.message, true); return; }
+  showToast('Assignment removed.');
+  loadAll();
+}
+
+async function envoyerEmail(assignmentId) {
+  showToast('Sending…');
+  const { data, error } = await sb.functions.invoke('send-email', { body: { action: 'envoyerEmailReviewer', assignmentId } });
+  if (error || !data?.succes) { showToast((data && data.message) || error.message, true); return; }
+  showToast(data.message);
+  loadAll();
+}
+
+async function relancer(assignmentId) {
+  showToast('Sending reminder…');
+  const { data, error } = await sb.functions.invoke('send-email', { body: { action: 'relancerReviewer', assignmentId } });
+  if (error || !data?.succes) { showToast((data && data.message) || error.message, true); return; }
+  showToast(data.message);
+  loadAll();
+}
+
+function triggerUpload(paperId) {
+  pendingUploadPaperId = paperId;
+  document.getElementById('file-input').click();
+}
+
+document.getElementById('file-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file || !pendingUploadPaperId) return;
+  const p = papers.find(x => x.id === pendingUploadPaperId);
+  const ext = file.name.toLowerCase().endsWith('.docx') ? 'docx' : 'pdf';
+  const contentType = ext === 'docx' ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : 'application/pdf';
+  showToast('Uploading…');
+  const { error } = await sb.storage.from('papers').upload(`${p.paper_id}.${ext}`, file, { upsert: true, contentType });
+  e.target.value = '';
+  if (error) { showToast(error.message, true); return; }
+  showToast('File uploaded.');
+});
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+</script>
+
+</body>
+</html>

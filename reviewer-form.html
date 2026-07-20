@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Submit Review — AINETEC 2027</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800;900&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --plaster:#f3f1ec; --ink:#15171c; --muted:#5b584f; --line:#cdc7ba;
+  --majorelle:#2b3fe0; --majorelle-soft:#dde1fb; --majorelle-light:#7c8cff;
+  --teal:#1c7a5c; --teal-soft:#dcece4; --white:#ffffff; --red:#d13a2f;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Work Sans',ui-sans-serif,system-ui,sans-serif;background:var(--plaster);color:var(--ink);font-size:16px;line-height:1.6;min-height:100vh;}
+h1,h2{font-family:'Unbounded',ui-sans-serif,sans-serif;font-weight:800;letter-spacing:-0.01em;}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace;}
+a{color:inherit;}
+
+.topbar{background:var(--ink);color:#e7e4dc;padding:.9rem 2rem;font-size:.8rem;display:flex;justify-content:space-between;}
+.topbar b{color:var(--majorelle-light);}
+.wrap{max-width:720px;margin:0 auto;padding:3rem 2rem;}
+.eyebrow{font-family:'IBM Plex Mono';font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--majorelle);margin-bottom:.6rem;}
+h1{font-size:1.5rem;margin-bottom:1.4rem;}
+
+.paper-meta{background:var(--white);border:1px solid var(--line);padding:1.3rem 1.5rem;margin-bottom:1.6rem;}
+.paper-meta .pid{font-family:'IBM Plex Mono';font-size:.72rem;color:var(--majorelle);font-weight:700;margin-bottom:.4rem;}
+.paper-meta .ptitle{font-weight:700;font-size:1.05rem;margin-bottom:.4rem;}
+.paper-meta .pmeta{color:var(--muted);font-size:.85rem;}
+.dl-link{display:inline-flex;align-items:center;gap:.4rem;margin-top:.9rem;padding:.6rem 1.1rem;background:var(--majorelle);color:#fff;text-decoration:none;font-size:.82rem;font-weight:700;border-radius:2px;}
+.dl-link.disabled{background:var(--line);color:var(--muted);pointer-events:none;}
+
+.field-label{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:.6rem;display:block;}
+.score-grid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:1.8rem;}
+.score-opt{background:var(--white);border:1px solid var(--line);padding:.8rem 1rem;border-radius:2px;display:flex;align-items:center;gap:.6rem;cursor:pointer;font-size:.88rem;}
+.score-opt:has(input:checked){border-color:var(--majorelle);background:var(--majorelle-soft);}
+.score-opt input{accent-color:var(--majorelle);}
+
+textarea{width:100%;padding:.9rem 1rem;border:1px solid var(--line);border-radius:2px;font-family:inherit;font-size:.92rem;resize:vertical;min-height:160px;background:var(--white);}
+.char-count{font-size:.76rem;color:var(--muted);text-align:right;margin-top:.4rem;}
+
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.85rem 1.7rem;font-size:.88rem;font-weight:700;border:none;border-radius:2px;cursor:pointer;letter-spacing:.02em;margin-top:1.4rem;}
+.btn-primary{background:var(--majorelle);color:#fff;}
+.btn-primary:hover{background:#2233b8;}
+.btn-primary:disabled{opacity:.55;cursor:default;}
+
+.state-msg{text-align:center;padding:4rem 1rem;color:var(--muted);}
+.state-msg.error{color:var(--red);}
+.back-link{display:inline-block;margin-top:1.2rem;color:var(--majorelle);text-decoration:none;font-weight:600;font-size:.88rem;}
+.success-icon{width:56px;height:56px;border:2px solid var(--teal);border-radius:50%;margin:0 auto 1.2rem;display:flex;align-items:center;justify-content:center;color:var(--teal);font-size:1.6rem;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>AINETEC <b>2027</b> — Reviewer Portal</div>
+  <div>ainetec@isga.ma</div>
+</div>
+
+<div class="wrap">
+  <div id="content">
+    <div class="state-msg">Loading…</div>
+  </div>
+</div>
+
+<script src="supabase-config.js"></script>
+<script>
+const FUNCTIONS_BASE = SUPABASE_URL + '/functions/v1';
+const params = new URLSearchParams(window.location.search);
+const token = params.get('token');
+const assignmentId = params.get('assignment');
+const content = document.getElementById('content');
+
+const VALID_SCORES = ['Strongly Accept', 'Accept', 'Weakly Accept', 'Weakly Reject', 'Reject', 'Strongly Reject'];
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function backLink() {
+  return `<a class="back-link" href="reviewer-dashboard.html?token=${encodeURIComponent(token)}">← Back to my dashboard</a>`;
+}
+
+async function init() {
+  if (!token || !assignmentId) {
+    content.innerHTML = `<div class="state-msg error">Missing access link parameters.</div>`;
+    return;
+  }
+  try {
+    const res = await fetch(`${FUNCTIONS_BASE}/reviewer-get?token=${encodeURIComponent(token)}&assignment=${encodeURIComponent(assignmentId)}`);
+    const data = await res.json();
+    if (!data.succes) {
+      content.innerHTML = `<div class="state-msg error">${escapeHtml(data.message || 'This link is not valid.')}</div>${backLink()}`;
+      return;
+    }
+    const d = data.data;
+    if (d.statut === 'Review reçue') {
+      content.innerHTML = `<div class="state-msg error">A review has already been submitted for this paper. Thank you for your contribution.</div>${backLink()}`;
+      return;
+    }
+
+    content.innerHTML = `
+      <div class="eyebrow">Reviewer ${d.numReviewer} — AINETEC 2027</div>
+      <h1>Submit your review</h1>
+      <div class="paper-meta">
+        <div class="pid">${escapeHtml(d.paperID)}</div>
+        <div class="ptitle">${escapeHtml(d.titre)}</div>
+        ${d.pdfUrl
+          ? `<a class="dl-link" href="${d.pdfUrl}" target="_blank" rel="noopener">Download paper</a>`
+          : `<span class="dl-link disabled">Paper file not available yet</span>`}
+      </div>
+
+      <label class="field-label">Overall recommendation</label>
+      <div class="score-grid">
+        ${VALID_SCORES.map(s => `
+          <label class="score-opt"><input type="radio" name="score" value="${s}">${s}</label>
+        `).join('')}
+      </div>
+
+      <label class="field-label" for="comment">Detailed comments (minimum 20 characters)</label>
+      <textarea id="comment" maxlength="4000" placeholder="Share your assessment of the paper's contribution, methodology, clarity, and any suggestions for the authors…"></textarea>
+      <div class="char-count"><span id="char-count">0</span> / 4000</div>
+
+      <button class="btn btn-primary" id="submit-btn" onclick="submitReview()">Submit Review</button>
+    `;
+    document.getElementById('comment').addEventListener('input', (e) => {
+      document.getElementById('char-count').textContent = e.target.value.length;
+    });
+  } catch (e) {
+    content.innerHTML = `<div class="state-msg error">Something went wrong. Please try again later.</div>${backLink()}`;
+  }
+}
+
+async function submitReview() {
+  const scoreEl = document.querySelector('input[name="score"]:checked');
+  const comment = document.getElementById('comment').value.trim();
+  if (!scoreEl) { alert('Please select an overall recommendation.'); return; }
+  if (comment.length < 20) { alert('Your comment must be at least 20 characters long.'); return; }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  try {
+    const res = await fetch(`${FUNCTIONS_BASE}/reviewer-submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, assignmentId, score: scoreEl.value, commentaire: comment }),
+    });
+    const result = await res.json();
+    if (!result.succes) {
+      alert(result.message || 'Something went wrong.');
+      btn.disabled = false;
+      btn.textContent = 'Submit Review';
+      return;
+    }
+    content.innerHTML = `
+      <div class="success-icon">✓</div>
+      <div class="state-msg" style="color:var(--ink);">Your review has been submitted. Thank you for your contribution to AINETEC 2027.</div>
+      <div style="text-align:center;">${backLink()}</div>
+    `;
+  } catch (e) {
+    alert('Something went wrong. Please try again.');
+    btn.disabled = false;
+    btn.textContent = 'Submit Review';
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>
