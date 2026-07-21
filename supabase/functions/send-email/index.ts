@@ -1,5 +1,4 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,42 +16,58 @@ const supabaseAdmin = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
 
-const SMTP_USER = Deno.env.get("SMTP_USER")!; // ainetec@isga.ma
-const SMTP_PASSWORD = Deno.env.get("SMTP_PASSWORD")!; // mot de passe d'application (pas le mot de passe du compte)
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
+const FROM_EMAIL = "conference@ainetec.com"; // domaine vérifié dans Resend
 
 // Constantes de la conférence — à tenir synchronisées si les dates/liens changent.
 const CONFERENCE = "AINETEC 2027 — International Conference on Artificial Intelligence, Networking and Emerging Technologies";
 const DATES = "held from June 1 to 3, 2027, at ISGA Campus Marrakech, Morocco";
 const REGISTRATION_LINK = "https://www.ainetec.com/registration.html";
-const CHAIR_EMAIL = "ainetec@isga.ma";
+const CHAIR_EMAIL = "ainetec@isga.ma"; // adresse de contact humain (reply-to) — l'envoi technique se fait depuis FROM_EMAIL
 const SITE_URL = "https://www.ainetec.com";
 const BRAND_COLOR = "#2b3fe0"; // Majorelle — couleur de marque AINETEC pour liens/boutons dans les emails
 
-function client() {
-  return new SMTPClient({
-    connection: {
-      hostname: "smtp.office365.com",
-      port: 587,
-      tls: false, // STARTTLS sur le port 587 (Office 365 n'utilise pas le TLS implicite du port 465)
-      auth: { username: SMTP_USER, password: SMTP_PASSWORD },
+async function sendEmail(opts: {
+  to: string;
+  subject: string;
+  html: string;
+  attachments?: { filename: string; content: string }[];
+}) {
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${RESEND_API_KEY}`,
+      "Content-Type": "application/json",
     },
+    body: JSON.stringify({
+      from: `AINETEC 2027 Organizing Committee <${FROM_EMAIL}>`,
+      to: [opts.to],
+      reply_to: CHAIR_EMAIL,
+      subject: opts.subject,
+      html: opts.html,
+      attachments: opts.attachments,
+    }),
   });
+  if (!res.ok) {
+    const errBody = await res.text();
+    throw new Error(`Resend a refusé l'envoi (${res.status}): ${errBody}`);
+  }
 }
 
-async function downloadAsAttachment(bucket: string, path: string, filename: string, contentType: string) {
+async function downloadAsAttachment(bucket: string, path: string, filename: string) {
   const { data, error } = await supabaseAdmin.storage.from(bucket).download(path);
   if (error || !data) return null;
   const bytes = new Uint8Array(await data.arrayBuffer());
   if (bytes.length === 0) return null;
-  // Encoder en base64 explicitement : passer un Uint8Array brut à denomailer sans préciser
-  // l'encodage le fait parfois traiter comme du texte, ce qui corrompt les PDF (pièce jointe vide/illisible).
+  // Encoder en base64 explicitement, par blocs pour éviter de dépasser la limite d'arguments
+  // de String.fromCharCode sur les gros fichiers.
   let binary = "";
   const chunkSize = 0x8000;
   for (let i = 0; i < bytes.length; i += chunkSize) {
     binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
   }
-  const base64 = btoa(binary);
-  return { filename, content: base64, contentType, encoding: "base64" as const };
+  const content = btoa(binary);
+  return { filename, content };
 }
 
 // ===== Attestations =====
@@ -106,20 +121,11 @@ async function envoyerAttestation(participantId: string) {
   if (!p.email) return { succes: false, message: "Email manquant pour ce participant." };
 
   const path = `${p.categorie}/${p.nom}_${p.prenom}.pdf`;
-  const attachment = await downloadAsAttachment("attestations", path, `${p.nom}_${p.prenom}.pdf`, "application/pdf");
+  const attachment = await downloadAsAttachment("attestations", path, `${p.nom}_${p.prenom}.pdf`);
   if (!attachment) return { succes: false, message: `PDF introuvable : ${path}` };
 
   const { sujet, html } = getAttestationEmailContent(p.categorie, p.prenom, p.nom);
-  const smtp = client();
-  await smtp.send({
-    from: `AINETEC 2027 Organizing Committee <${SMTP_USER}>`,
-    to: p.email,
-    subject: sujet,
-    content: "auto",
-    html,
-    attachments: [attachment],
-  });
-  await smtp.close();
+  await sendEmail({ to: p.email, subject: sujet, html, attachments: [attachment] });
   return { succes: true, message: `Attestation envoyée à ${p.email}` };
 }
 
@@ -165,15 +171,7 @@ async function envoyerEmailReviewer(assignmentId: string) {
     <a href="${SITE_URL}" style="color:${BRAND_COLOR};">${SITE_URL.replace("https://", "")}</a> | <a href="mailto:${CHAIR_EMAIL}" style="color:${BRAND_COLOR};">${CHAIR_EMAIL}</a></p>
   </div>`;
 
-  const smtp = client();
-  await smtp.send({
-    from: `AINETEC 2027 Organizing Committee <${SMTP_USER}>`,
-    to: a.reviewer.email,
-    subject: sujet,
-    content: "auto",
-    html,
-  });
-  await smtp.close();
+  await sendEmail({ to: a.reviewer.email, subject: sujet, html });
 
   await supabaseAdmin
     .from("assignments")
@@ -207,15 +205,7 @@ async function relancerReviewer(assignmentId: string) {
     <a href="${SITE_URL}" style="color:${BRAND_COLOR};">${SITE_URL.replace("https://", "")}</a> | <a href="mailto:${CHAIR_EMAIL}" style="color:${BRAND_COLOR};">${CHAIR_EMAIL}</a></p>
   </div>`;
 
-  const smtp = client();
-  await smtp.send({
-    from: `AINETEC 2027 Organizing Committee <${SMTP_USER}>`,
-    to: a.reviewer.email,
-    subject: sujet,
-    content: "auto",
-    html,
-  });
-  await smtp.close();
+  await sendEmail({ to: a.reviewer.email, subject: sujet, html });
 
   await supabaseAdmin
     .from("assignments")
@@ -290,15 +280,7 @@ async function sendDecision(paperId: string) {
     </div>`;
   }
 
-  const smtp = client();
-  await smtp.send({
-    from: `AINETEC 2027 Organizing Committee <${SMTP_USER}>`,
-    to: p.email_auteur,
-    subject: sujet,
-    content: "auto",
-    html,
-  });
-  await smtp.close();
+  await sendEmail({ to: p.email_auteur, subject: sujet, html });
 
   await supabaseAdmin
     .from("papers")
