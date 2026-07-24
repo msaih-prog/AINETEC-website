@@ -30,7 +30,7 @@ const BRAND_COLOR = "#2b3fe0"; // Majorelle — couleur de marque AINETEC pour l
 // Le Reply-To n'est pas respecté par tous les clients mail (Gmail, notamment, répond parfois
 // à l'adresse d'envoi plutôt qu'au Reply-To) — cette adresse n'a pas de boîte de réception,
 // donc on rend le contact humain explicite dans le corps du message plutôt que de compter dessus.
-const DO_NOT_REPLY_NOTE = `<p style="margin:16px 0 0;font-size:12px;color:#5a6b80;">This is an automated message — please do not reply directly to this email. For any questions, contact us at <a href="mailto:${CHAIR_EMAIL}" style="color:${BRAND_COLOR};">${CHAIR_EMAIL}</a>.</p>`;
+const DO_NOT_REPLY_NOTE = `<table role="presentation" style="margin:20px 0 0;border:1px solid #999999;border-collapse:collapse;width:100%;"><tr><td style="padding:14px 16px;"><p style="margin:0;font-weight:bold;font-style:italic;text-decoration:underline;color:#d13a2f;font-size:14px;line-height:1.6;">This is an automated message — please do not reply directly to this email. For any questions, contact us at <a href="mailto:${CHAIR_EMAIL}" style="color:#d13a2f;font-weight:bold;font-style:italic;text-decoration:underline;">${CHAIR_EMAIL}</a>.</p></td></tr></table>`;
 
 async function sendEmail(opts: {
   to: string;
