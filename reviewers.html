@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800;900&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root{
   --plaster:#f3f1ec; --ink:#15171c; --muted:#5b584f; --line:#cdc7ba;
@@ -87,6 +88,7 @@ tbody tr:hover{background:#faf9f7;}
 .count-badge{display:inline-block;background:var(--teal-soft);color:var(--teal);font-family:'IBM Plex Mono';font-size:.72rem;font-weight:700;padding:.2rem .55rem;border-radius:10px;}
 .row-actions{display:flex;gap:.5rem;}
 .empty-row td{text-align:center;color:var(--muted);padding:2.5rem 1rem;}
+.inline-email-input{width:100%;padding:.4rem .6rem;border:1px solid var(--majorelle);border-radius:2px;font-size:.85rem;}
 .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--ink);color:#fff;padding:.85rem 1.3rem;border-radius:3px;font-size:.85rem;box-shadow:0 8px 20px rgba(0,0,0,.25);opacity:0;transform:translateY(12px);transition:opacity .2s,transform .2s;z-index:999;}
 .toast.show{opacity:1;transform:translateY(0);}
 .toast.err{background:var(--red);}
@@ -125,7 +127,10 @@ tbody tr:hover{background:#faf9f7;}
         <div class="eyebrow">Peer Review</div>
         <h1>Reviewers</h1>
       </div>
-      <button class="btn btn-primary" onclick="openForm()">+ Add Reviewer</button>
+      <div style="display:flex;gap:.6rem;">
+        <button class="btn btn-ghost" id="sync-btn" onclick="syncFromExcel()">Synchroniser depuis Excel</button>
+        <button class="btn btn-primary" onclick="openForm()">+ Add Reviewer</button>
+      </div>
     </div>
 
     <div class="stats-row">
@@ -183,6 +188,7 @@ tbody tr:hover{background:#faf9f7;}
 let reviewers = [];
 let assignmentCounts = {};
 let editingId = null;
+let editingEmailId = null;
 
 function showToast(msg, isErr) {
   const t = document.getElementById('toast');
@@ -252,20 +258,91 @@ function renderTable() {
     tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No reviewers found.</td></tr>';
     return;
   }
-  tbody.innerHTML = filtered.map(r => `
+  tbody.innerHTML = filtered.map(r => {
+    const isEditingEmail = editingEmailId === r.id;
+    return `
     <tr>
       <td><strong>${escapeHtml(r.prenom)} ${escapeHtml(r.nom)}</strong></td>
-      <td>${escapeHtml(r.email)}</td>
+      <td>${isEditingEmail
+        ? `<input class="inline-email-input" id="email-edit-${r.id}" type="email" value="${escapeHtml(r.email)}">`
+        : escapeHtml(r.email)}</td>
       <td><span class="token-cell">${r.token.slice(0, 10)}…<button class="copy-btn" onclick="copyToken('${r.token}')">Copy link</button></span></td>
       <td>${assignmentCounts[r.id] ? `<span class="count-badge">${assignmentCounts[r.id]}</span>` : '—'}</td>
       <td>
         <div class="row-actions">
-          <button class="btn btn-ghost btn-sm" onclick="editReviewer('${r.id}')">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteReviewer('${r.id}')">Delete</button>
+          ${isEditingEmail
+            ? `<button class="btn btn-primary btn-sm" onclick="saveEmail('${r.id}')">Save</button>
+               <button class="btn btn-ghost btn-sm" onclick="cancelEditEmail()">Cancel</button>`
+            : `<button class="btn btn-ghost btn-sm" onclick="startEditEmail('${r.id}')">Modifier</button>
+               <button class="btn btn-ghost btn-sm" onclick="editReviewer('${r.id}')">Edit</button>
+               <button class="btn btn-danger btn-sm" onclick="deleteReviewer('${r.id}')">Delete</button>`}
         </div>
       </td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
+}
+
+function startEditEmail(id) {
+  editingEmailId = id;
+  renderTable();
+  document.getElementById(`email-edit-${id}`)?.focus();
+}
+
+function cancelEditEmail() {
+  editingEmailId = null;
+  renderTable();
+}
+
+async function saveEmail(id) {
+  const input = document.getElementById(`email-edit-${id}`);
+  const newEmail = input.value.trim();
+  if (!newEmail) { showToast('Email cannot be empty.', true); return; }
+  const { error } = await sb.from('reviewers').update({ email: newEmail }).eq('id', id);
+  if (error) { showToast(error.message, true); return; }
+  showToast('Email updated.');
+  editingEmailId = null;
+  loadAll();
+}
+
+async function syncFromExcel() {
+  const btn = document.getElementById('sync-btn');
+  btn.disabled = true;
+  btn.textContent = 'Syncing…';
+  try {
+    const res = await fetch('ainetec2027.xlsx');
+    if (!res.ok) throw new Error('ainetec2027.xlsx introuvable dans le dossier du site.');
+    const buf = await res.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array' });
+    const ws = wb.Sheets['Scientific Committee'];
+    if (!ws) throw new Error('Sheet "Scientific Committee" introuvable dans le fichier.');
+    const rows = XLSX.utils.sheet_to_json(ws, { defval: '' }).filter(r => r.Email);
+
+    const existingEmails = new Set(reviewers.map(r => r.email.toLowerCase()));
+    const seen = new Set();
+    const toInsert = [];
+    for (const r of rows) {
+      const email = String(r.Email).trim();
+      const key = email.toLowerCase();
+      if (!key || existingEmails.has(key) || seen.has(key)) continue;
+      seen.add(key);
+      toInsert.push({ nom: String(r.Nom || '').trim(), prenom: String(r.Prenom || '').trim(), email });
+    }
+
+    if (!toInsert.length) {
+      showToast('Aucun nouveau reviewer — tous existent déjà.');
+      return;
+    }
+    const { error } = await sb.from('reviewers').insert(toInsert);
+    if (error) { showToast(error.message, true); return; }
+    showToast(`${toInsert.length} reviewer(s) ajouté(s) depuis Excel.`);
+    loadAll();
+  } catch (e) {
+    showToast(e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Synchroniser depuis Excel';
+  }
 }
 
 function copyToken(token) {

@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800;900&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root{
   --plaster:#f3f1ec; --ink:#15171c; --muted:#5b584f; --line:#cdc7ba;
@@ -57,6 +58,19 @@ section{padding:5rem 0;}
 .empty-state .icon::after{left:12px;top:16px;width:32px;height:2px;}
 .empty-state h2{font-size:1.3rem;margin-bottom:.8rem;}
 .empty-state p{color:var(--muted);font-size:.9rem;max-width:420px;margin:0 auto;}
+
+.sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:1.5rem;margin-bottom:2.2rem;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:1.5rem;}
+.sec-eyebrow{font-size:.74rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--majorelle);margin-bottom:.5rem;}
+.sec-title{font-size:clamp(1.4rem,2.2vw,1.9rem);}
+.committee-section{margin-bottom:3.5rem;}
+.committee-section:last-child{margin-bottom:0;}
+.member-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);}
+.member-card{background:var(--white);padding:1.5rem 1.6rem;}
+.member-name{font-family:'Unbounded';font-size:.95rem;font-weight:700;margin-bottom:.35rem;}
+.member-university{font-size:.82rem;color:var(--muted);line-height:1.5;}
+.member-role{display:inline-block;margin-top:.7rem;font-family:'IBM Plex Mono';font-size:.66rem;text-transform:uppercase;letter-spacing:.04em;color:var(--majorelle);background:var(--majorelle-soft);padding:.25rem .6rem;border-radius:10px;}
+@media(max-width:900px){.member-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:640px){.member-grid{grid-template-columns:1fr;}}
 
 footer{background:var(--ink);color:#c9c6bc;padding:4rem 2rem 0;}
 .footer-grid{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:2.5rem;padding-bottom:3rem;border-bottom:1px solid #2b2d33;}
@@ -118,10 +132,11 @@ footer{background:var(--ink);color:#c9c6bc;padding:4rem 2rem 0;}
 
 <section>
   <div class="container">
-    <div class="empty-state">
-      <div class="icon"></div>
-      <h2>Committee list coming soon</h2>
-      <p>Names, affiliations and roles for AINETEC 2027's committees will be published on this page shortly.</p>
+    <div id="committees-content">
+      <div class="empty-state">
+        <div class="icon"></div>
+        <h2>Loading committees…</h2>
+      </div>
     </div>
   </div>
 </section>
@@ -222,6 +237,69 @@ function initNetworkCanvas(canvasId, lineRGB, nodeColor, nodeCount) {
 }
 
 initNetworkCanvas('heroNetworkCanvas', '124,140,255', '#4de1c7', 16);
+
+// Committees list — read directly from ainetec2027.xlsx on every page load, so
+// new members appear automatically after a git push, with no HTML changes needed.
+const COMMITTEE_SHEETS = ['Honorary Committee', 'Steering Committee', 'Organizing Committee', 'Scientific Committee'];
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+async function loadCommittees() {
+  const container = document.getElementById('committees-content');
+  try {
+    const res = await fetch('ainetec2027.xlsx');
+    if (!res.ok) throw new Error('File not found');
+    const buf = await res.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array' });
+
+    const sectionsHtml = COMMITTEE_SHEETS.map(sheetName => {
+      const ws = wb.Sheets[sheetName];
+      if (!ws) return '';
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' })
+        .filter(r => r.Nom || r.Prenom);
+      if (!rows.length) return '';
+
+      return `
+        <div class="committee-section">
+          <div class="sec-head">
+            <div>
+              <div class="sec-eyebrow">Committees</div>
+              <h2 class="sec-title">${escapeHtml(sheetName)}</h2>
+            </div>
+          </div>
+          <div class="member-grid">
+            ${rows.map(r => `
+              <div class="member-card">
+                <div class="member-name">${escapeHtml(r.Prenom)} ${escapeHtml(r.Nom)}</div>
+                <div class="member-university">${escapeHtml(r.University)}</div>
+                ${r.Categorie ? `<span class="member-role">${escapeHtml(r.Categorie)}</span>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = sectionsHtml || `
+      <div class="empty-state">
+        <div class="icon"></div>
+        <h2>Committee list coming soon</h2>
+        <p>Names, affiliations and roles for AINETEC 2027's committees will be published on this page shortly.</p>
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="icon"></div>
+        <h2>Committee list coming soon</h2>
+        <p>Names, affiliations and roles for AINETEC 2027's committees will be published on this page shortly.</p>
+      </div>
+    `;
+  }
+}
+loadCommittees();
 </script>
 
 </body>
