@@ -314,7 +314,7 @@ function triggerPaperUpload(paperId) {
 
 async function sendPaperAttestation(paperId, isResend) {
   const p = acceptedPapers.find(x => x.id === paperId);
-  if (!p.nom_auteur || !p.prenom_auteur) { showToast('Please fill in the author\\'s first and last name first.', true); return; }
+  if (!p.nom_auteur || !p.prenom_auteur) { showToast("Please fill in the author's first and last name first.", true); return; }
   if (!isResend && !confirm(`Send attestation to ${p.email_auteur}?`)) return;
 
   if (isResend) {
