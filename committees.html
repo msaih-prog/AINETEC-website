@@ -271,13 +271,13 @@ async function loadCommittees() {
 
       const body = TEXTLIST_SHEETS.includes(sheetName)
         ? `<ul class="member-textlist">
-            ${rows.map(r => `<li><b>${escapeHtml(r.Nom)} ${escapeHtml(r.Prenom)}</b>, ${escapeHtml(r.University)}</li>`).join('')}
+            ${rows.map(r => `<li><b>${escapeHtml(r.Nom)} ${escapeHtml(r.Prenom)}</b>, ${escapeHtml(String(r.University).trim())}${r.Country ? `, ${escapeHtml(String(r.Country).trim())}` : ''}</li>`).join('')}
           </ul>`
         : `<div class="member-list">
             ${rows.map(r => `
               <div class="member-card">
                 <div class="member-name">${escapeHtml(r.Prenom)} ${escapeHtml(r.Nom)}</div>
-                <div class="member-university">${escapeHtml(r.University)}</div>
+                <div class="member-university">${escapeHtml(String(r.University).trim())}${r.Country ? `, ${escapeHtml(String(r.Country).trim())}` : ''}</div>
                 ${r.Categorie ? `<span class="member-role">${escapeHtml(r.Categorie)}</span>` : ''}
               </div>
             `).join('')}
