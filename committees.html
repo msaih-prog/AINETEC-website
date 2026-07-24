@@ -72,6 +72,11 @@ section{padding:5rem 0;}
 .member-role{display:inline-block;margin-top:.8rem;font-family:'IBM Plex Mono';font-size:.66rem;text-transform:uppercase;letter-spacing:.04em;color:var(--majorelle);background:var(--majorelle-soft);padding:.25rem .6rem;border-radius:10px;}
 @media(max-width:640px){.member-card{flex:1 1 100%;}}
 
+.member-textlist{list-style:none;column-count:2;column-gap:3rem;}
+.member-textlist li{margin-bottom:.6rem;font-size:.88rem;line-height:1.55;color:var(--ink);break-inside:avoid;}
+.member-textlist li b{font-weight:700;}
+@media(max-width:720px){.member-textlist{column-count:1;}}
+
 footer{background:var(--ink);color:#c9c6bc;padding:4rem 2rem 0;}
 .footer-grid{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:2.5rem;padding-bottom:3rem;border-bottom:1px solid #2b2d33;}
 .footer-brand .wordmark{font-family:'Unbounded';font-weight:800;color:#fff;font-size:1.1rem;margin-bottom:.9rem;}
@@ -241,6 +246,9 @@ initNetworkCanvas('heroNetworkCanvas', '124,140,255', '#4de1c7', 16);
 // Committees list — read directly from ainetec2027.xlsx on every page load, so
 // new members appear automatically after a git push, with no HTML changes needed.
 const COMMITTEE_SHEETS = ['Honorary Committee', 'Steering Committee', 'Organizing Committee', 'Scientific Committee'];
+// These two render as a plain flowing text list instead of cards — reads fine
+// whether there's one member or two hundred, no layout to fill in the meantime.
+const TEXTLIST_SHEETS = ['Organizing Committee', 'Scientific Committee'];
 
 function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -261,6 +269,20 @@ async function loadCommittees() {
         .filter(r => r.Nom || r.Prenom);
       if (!rows.length) return '';
 
+      const body = TEXTLIST_SHEETS.includes(sheetName)
+        ? `<ul class="member-textlist">
+            ${rows.map(r => `<li><b>${escapeHtml(r.Nom)} ${escapeHtml(r.Prenom)}</b>, ${escapeHtml(r.University)}</li>`).join('')}
+          </ul>`
+        : `<div class="member-list">
+            ${rows.map(r => `
+              <div class="member-card">
+                <div class="member-name">${escapeHtml(r.Prenom)} ${escapeHtml(r.Nom)}</div>
+                <div class="member-university">${escapeHtml(r.University)}</div>
+                ${r.Categorie ? `<span class="member-role">${escapeHtml(r.Categorie)}</span>` : ''}
+              </div>
+            `).join('')}
+          </div>`;
+
       return `
         <div class="committee-section">
           <div class="sec-head">
@@ -269,15 +291,7 @@ async function loadCommittees() {
               <h2 class="sec-title">${escapeHtml(sheetName)}</h2>
             </div>
           </div>
-          <div class="member-list">
-            ${rows.map(r => `
-              <div class="member-card">
-                <div class="member-name">${escapeHtml(r.Prenom)} ${escapeHtml(r.Nom)}</div>
-                <div class="member-university">${escapeHtml(r.University)}</div>
-                ${r.Categorie ? `<span class="member-role">${escapeHtml(r.Categorie)}</span>` : ''}
-              </div>
-            `).join('')}
-          </div>
+          ${body}
         </div>
       `;
     }).join('');
