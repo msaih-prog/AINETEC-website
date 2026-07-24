@@ -310,7 +310,9 @@ async function syncFromExcel() {
   btn.disabled = true;
   btn.textContent = 'Syncing…';
   try {
-    const res = await fetch('ainetec2027.xlsx');
+    // Cache-bust: GitHub Pages' CDN can keep serving a stale copy of this file
+    // for a while after a push otherwise, well past normal HTML propagation times.
+    const res = await fetch('ainetec2027.xlsx?v=' + Date.now());
     if (!res.ok) throw new Error('ainetec2027.xlsx introuvable dans le dossier du site.');
     const buf = await res.arrayBuffer();
     const wb = XLSX.read(buf, { type: 'array' });
