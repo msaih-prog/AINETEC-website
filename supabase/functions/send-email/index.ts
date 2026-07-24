@@ -27,6 +27,11 @@ const CHAIR_EMAIL = "ainetec@isga.ma"; // adresse de contact humain (reply-to) �
 const SITE_URL = "https://www.ainetec.com";
 const BRAND_COLOR = "#2b3fe0"; // Majorelle — couleur de marque AINETEC pour liens/boutons dans les emails
 
+// Le Reply-To n'est pas respecté par tous les clients mail (Gmail, notamment, répond parfois
+// à l'adresse d'envoi plutôt qu'au Reply-To) — cette adresse n'a pas de boîte de réception,
+// donc on rend le contact humain explicite dans le corps du message plutôt que de compter dessus.
+const DO_NOT_REPLY_NOTE = `<p style="margin:16px 0 0;font-size:12px;color:#5a6b80;">This is an automated message — please do not reply directly to this email. For any questions, contact us at <a href="mailto:${CHAIR_EMAIL}" style="color:${BRAND_COLOR};">${CHAIR_EMAIL}</a>.</p>`;
+
 async function sendEmail(opts: {
   to: string;
   subject: string;
@@ -75,7 +80,7 @@ function getAttestationEmailContent(categorie: string, prenom: string, nom: stri
   const fullName = `${prenom} ${nom}`;
   const isProfessor = categorie !== "Participants";
   const salutation = isProfessor ? `Dear Prof. ${fullName},` : `Dear ${fullName},`;
-  const signature = `<p style="margin:0;">With our highest regards,</p><p style="margin:0;">The Organizing Committee</p><p style="margin:0;">AINETEC 2027</p><p style="margin:0;"><a href="${SITE_URL}" style="color:${BRAND_COLOR};">${SITE_URL.replace("https://", "")}</a> | <a href="mailto:${CHAIR_EMAIL}" style="color:${BRAND_COLOR};">${CHAIR_EMAIL}</a></p>`;
+  const signature = `<p style="margin:0;">With our highest regards,</p><p style="margin:0;">The Organizing Committee</p><p style="margin:0;">AINETEC 2027</p><p style="margin:0;"><a href="${SITE_URL}" style="color:${BRAND_COLOR};">${SITE_URL.replace("https://", "")}</a> | <a href="mailto:${CHAIR_EMAIL}" style="color:${BRAND_COLOR};">${CHAIR_EMAIL}</a></p>${DO_NOT_REPLY_NOTE}`;
   const htmlTemplate = (body: string) =>
     `<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;color:#1c2b3a;max-width:650px;"><p style="margin:0 0 16px;">${salutation}</p>${body}<p style="margin:16px 0;">Please find your attestation attached to this email.</p><p style="margin:24px 0 0;">${signature}</p></div>`;
 
@@ -169,6 +174,7 @@ async function envoyerEmailReviewer(assignmentId: string) {
     <hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">
     <p>Best regards,<br>The Organizing Committee<br>AINETEC 2027<br>
     <a href="${SITE_URL}" style="color:${BRAND_COLOR};">${SITE_URL.replace("https://", "")}</a> | <a href="mailto:${CHAIR_EMAIL}" style="color:${BRAND_COLOR};">${CHAIR_EMAIL}</a></p>
+    ${DO_NOT_REPLY_NOTE}
   </div>`;
 
   await sendEmail({ to: a.reviewer.email, subject: sujet, html });
@@ -203,6 +209,7 @@ async function relancerReviewer(assignmentId: string) {
     <hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">
     <p>Best regards,<br>The Organizing Committee<br>AINETEC 2027<br>
     <a href="${SITE_URL}" style="color:${BRAND_COLOR};">${SITE_URL.replace("https://", "")}</a> | <a href="mailto:${CHAIR_EMAIL}" style="color:${BRAND_COLOR};">${CHAIR_EMAIL}</a></p>
+    ${DO_NOT_REPLY_NOTE}
   </div>`;
 
   await sendEmail({ to: a.reviewer.email, subject: sujet, html });
@@ -265,6 +272,7 @@ async function sendDecision(paperId: string) {
       ${reviewsHtml}
       <p>With our highest regards,<br>The Organizing Committee<br>AINETEC 2027<br>
       <a href="${SITE_URL}" style="color:${BRAND_COLOR};">${SITE_URL.replace("https://", "")}</a> | <a href="mailto:${CHAIR_EMAIL}" style="color:${BRAND_COLOR};">${CHAIR_EMAIL}</a></p>
+      ${DO_NOT_REPLY_NOTE}
     </div>`;
   } else {
     sujet = `[AINETEC 2027] Decision Notification – Paper ID ${p.paper_id}`;
@@ -277,6 +285,7 @@ async function sendDecision(paperId: string) {
       ${reviewsHtml}
       <p>Best regards,<br>The Organizing Committee<br>AINETEC 2027<br>
       <a href="${SITE_URL}" style="color:${BRAND_COLOR};">${SITE_URL.replace("https://", "")}</a> | <a href="mailto:${CHAIR_EMAIL}" style="color:${BRAND_COLOR};">${CHAIR_EMAIL}</a></p>
+      ${DO_NOT_REPLY_NOTE}
     </div>`;
   }
 
